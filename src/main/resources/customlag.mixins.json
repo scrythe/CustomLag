@@ -5,8 +5,8 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ServerCommonNetworkHandlerMixin",
-    "ServerPlayNetworkHandlerMixin",
-    "ClientConnectionAccessor"
+    "ClientConnectionAccessor",
+    "ServerCommonNetworkHandlerAccessor"
   ],
   "client": [
   ],
