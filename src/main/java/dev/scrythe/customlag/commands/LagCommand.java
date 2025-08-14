@@ -25,13 +25,19 @@ import java.util.concurrent.CompletableFuture;
 
 public class LagCommand {
     public static LiteralArgumentBuilder<ServerCommandSource> register() {
-        return CommandManager.literal("lag").then(CommandManager.argument("player", EntityArgumentType.player())
-                .suggests(new PlayerSuggestionProvider())
-                .then(CommandManager.argument("latency", IntegerArgumentType.integer(0))
-                        .executes(LagCommand::executeCommand)));
+        return CommandManager.literal("lag")
+                .then(CommandManager.literal("set")
+                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                                .suggests(new PlayerSuggestionProvider())
+                                .then(CommandManager.argument("latency", IntegerArgumentType.integer(0))
+                                        .executes(LagCommand::changeOrSetLatency))))
+                .then(CommandManager.literal("remove")
+                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                                .suggests(new PlayerSuggestionProvider())
+                                .executes(LagCommand::removeLatency)));
     }
 
-    private static int executeCommand(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private static int changeOrSetLatency(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
         String playerName = player.getName().getString();
         int latency = IntegerArgumentType.getInteger(context, "latency");
@@ -55,9 +61,28 @@ public class LagCommand {
         return 1;
     }
 
+    private static int removeLatency(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+        String playerName = player.getName().getString();
+
+        ClientConnection connection = ((ServerCommonNetworkHandlerAccessor) player.networkHandler).getConnection();
+        Channel channel = ((ClientConnectionAccessor) connection).getChannel();
+        ChannelPipeline channelPipeline = channel.pipeline();
+
+        if (channelPipeline.get("delay_handler") == null) {
+            context.getSource()
+                    .sendFeedback(() -> Text.literal("Lag for %s is not set. No need to remove".formatted(playerName)), false);
+            return 0;
+        }
+
+        channelPipeline.remove("delay_handler");
+        context.getSource().sendFeedback(() -> Text.literal("Remove lag for player %s".formatted(playerName)), false);
+        return 1;
+    }
+
     private static class PlayerSuggestionProvider implements SuggestionProvider<ServerCommandSource> {
         @Override
-        public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) throws CommandSyntaxException {
+        public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
             ServerCommandSource source = context.getSource();
             Collection<String> playerNames = source.getPlayerNames();
             for (String playerName : playerNames) {

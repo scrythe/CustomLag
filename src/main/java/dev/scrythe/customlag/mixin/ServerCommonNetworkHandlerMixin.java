@@ -25,15 +25,6 @@ public abstract class ServerCommonNetworkHandlerMixin {
     @Shadow
     private int latency;
 
-//    private void sendPing() {
-//        this.waitingForKeepAlive = true;
-//        this.lastKeepAliveTime = l;
-//        this.keepAliveId = l;
-//        this.sendPacket(new KeepAliveS2CPacket(this.keepAliveId));
-//    }
-
-    @Shadow
-    public abstract int getLatency();
 
     @Shadow
     public abstract void sendPacket(Packet<?> packet);
