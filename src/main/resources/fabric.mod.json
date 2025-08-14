@@ -4,14 +4,14 @@
   "version": "${version}",
   "name": "CustomLag",
   "description": "",
-  "authors": [],
+  "authors": ["scrythe"],
   "contact": {},
   "license": "MIT",
   "icon": "assets/customlag/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "dev.scrythe.customlag.Customlag"
+      "dev.scrythe.customlag.CustomLag"
     ]
   },
   "mixins": [
