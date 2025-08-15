@@ -2,7 +2,7 @@
 
 # CustomLag
 
-![example usecase](https://i.imgur.com/IkmwseG.gif)
+![example usecase](./src/main/resources/assets/customlag/example-usecase.gif)
 
 # About the Mod
 
