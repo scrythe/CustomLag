@@ -1,8 +1,15 @@
-![customlag icon](./src/main/resources/assets/customlag/icon.png)
+<img src="./src/main/resources/assets/customlag/icon.png" alt="customlag icon" width="100"/>
 
 # CustomLag
 
-![example usecase](./src/main/resources/assets/customlag/example-usecase.gif)
+<!-- <video autoplay muted loop playsinline controls preload>
+  <source src="./src/main/resources/assets/customlag/example-usecase.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video> -->
+
+<video src="https://github.com/user-attachments/assets/af988608-fc0a-472d-b2a4-939ccbc7fb63" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 # About the Mod
 
