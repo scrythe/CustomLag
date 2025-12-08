@@ -7,3 +7,31 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
+/** Loads the VersionProperties field for the currently selected Minecraft version. */
+def loadProperties()  {
+    ArrayList<String> minecraft_versions = fileTree("versionProperties").files.name // Get all the files in "versionProperties"
+    for (int i = 0; i < minecraft_versions.size(); i++) {
+        String version = minecraft_versions[i].replaceAll("\\.properties", "")  // remove the ".properties" at the end to get the versions
+        minecraft_versions[i] = version
+    }
+    minecraft_versions.sort() // Sort so it always goes from oldest to newest, maybe better sort neccesary though
+    println("Available MC Versions: ${minecraft_versions}")
+
+    int minecraft_version_index = -1
+    if (hasProperty("minecraft_version")) {
+        minecraft_version_index = minecraft_versions.indexOf(minecraft_version)
+    }
+    if (minecraft_version_index == -1) {
+        throw new GradleException("Minecraft version: $minecraft_version not configured or found.\n" +
+                "Create a ${minecraft_version}.properties file in versionProperties, change \"minecraft_version\" property in gradle.properties\n" +
+                "or use -Pminecraft_version=\"<insert correct minecraft version>\" in cmd arg to set minecraft_version ")
+    }
+
+    def props = new Properties()
+    props.load(new FileInputStream("$rootDir/versionProperties/$minecraft_version"+".properties"))
+    // load the properties of the selected minecraft version and save it to $gradle
+    props.each {prop -> gradle.ext.set(prop.key, prop.value) }
+}
+
+loadProperties()
