@@ -4,9 +4,9 @@
   "package": "dev.scrythe.customlag.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ServerCommonNetworkHandlerMixin",
-    "ClientConnectionAccessor",
-    "ServerCommonNetworkHandlerAccessor"
+    "ServerCommonPacketListenerImplMixin",
+    "ConnectionAccessor",
+    "ServerCommonPacketListenerImplAccessor"
   ],
   "client": [
   ],

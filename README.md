@@ -2,11 +2,15 @@
 
 # CustomLag
 
-<!-- <video autoplay muted loop playsinline controls preload>
-  <source src="./src/main/resources/assets/customlag/example-usecase.mp4" type="video/mp4">
+<!-- for modrinth
+<video autoplay muted loop playsinline controls preload>
+  // only for local: <source src="./src/main/resources/assets/customlag/example-usecase.mp4" type="video/mp4">
+  <source src="https://github.com/scrythe/CustomLag/raw/refs/heads/main/src/main/resources/assets/customlag/example-usecase.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video> -->
 
+
+<!-- for github -->
 <video src="https://github.com/user-attachments/assets/af988608-fc0a-472d-b2a4-939ccbc7fb63" type="video/mp4">
   Your browser does not support the video tag.
 </video>

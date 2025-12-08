@@ -1,0 +1,46 @@
+package dev.scrythe.customlag.mixin;
+
+import com.llamalad7.mixinextras.sugar.Local;
+import net.minecraft.network.protocol.common.ServerboundKeepAlivePacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerCommonPacketListenerImpl;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import org.objectweb.asm.Opcodes;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+@Mixin(ServerCommonPacketListenerImpl.class)
+public abstract class ServerCommonPacketListenerImplMixin {
+    @Shadow
+    @Final
+    protected MinecraftServer server;
+
+    @Shadow
+    private int latency;
+
+    @Inject(method = "handleKeepAlive", at = @At(value = "FIELD", target = "Lnet/minecraft/server/network/ServerCommonPacketListenerImpl;latency:I", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER))
+    public void handleKeepAlive(ServerboundKeepAlivePacket packet, CallbackInfo ci, @Local int i) {
+        latency = i;
+        updatePing();
+    }
+
+    @Unique
+    private void updatePing() {
+        ServerCommonPacketListenerImpl serverCommonNetworkHandler = (ServerCommonPacketListenerImpl) (Object) this;
+        if (serverCommonNetworkHandler instanceof ServerGamePacketListenerImpl) {
+            ServerPlayer player = ((ServerGamePacketListenerImpl) serverCommonNetworkHandler).player;
+            ClientboundPlayerInfoUpdatePacket packet = new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LATENCY, player);
+            for (ServerPlayer playerEntity : server.getPlayerList().getPlayers()) {
+                playerEntity.connection.send(packet);
+            }
+        }
+    }
+}
+
