@@ -9,7 +9,8 @@
     "ServerCommonPacketListenerImplMixin"
   ],
   "client": [
-    "GuiMixin"
+    "GuiMixin",
+    "PlayerTabOverlayMixin"
   ],
   "injectors": {
     "defaultRequire": 1
