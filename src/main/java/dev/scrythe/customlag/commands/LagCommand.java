@@ -1,32 +1,42 @@
 package dev.scrythe.customlag.commands;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import dev.scrythe.customlag.CustomLagConfig;
 import dev.scrythe.customlag.DelayHandler.DelayingChannelDuplexHandler;
 import dev.scrythe.customlag.mixin.ConnectionAccessor;
 import dev.scrythe.customlag.mixin.ServerCommonPacketListenerImplAccessor;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
-import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.synchronization.SuggestionProviders;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 
 public class LagCommand {
     public static LiteralArgumentBuilder<CommandSourceStack> register() {
         return Commands.literal("lag")
                 .requires(source -> source.hasPermission(2))
+                .then(Commands.literal("config")
+                        .then(Commands.literal("useOnlyOnePingPacket")
+                                .then(Commands.argument("useOnlyOnePingPacket", BoolArgumentType.bool())
+                                        .executes(LagCommand::setUseOnlyOnePingPacket)))
+                        .then(Commands.literal("pingSendInterval")
+                                .then(Commands.argument("pingSendInterval", LongArgumentType.longArg())
+                                        .executes(LagCommand::setReducePingSendInterval))))
                 .then(Commands.literal("set")
                         .then(Commands.argument("player", EntityArgument.player())
                                 .suggests(new PlayerSuggestionProvider())
@@ -36,6 +46,27 @@ public class LagCommand {
                         .then(Commands.argument("player", EntityArgument.player())
                                 .suggests(new PlayerSuggestionProvider())
                                 .executes(LagCommand::removeLatency)));
+    }
+
+    private static int setUseOnlyOnePingPacket(CommandContext<CommandSourceStack> context) {
+        boolean useOnlyOnePingPacket = BoolArgumentType.getBool(context, "useOnlyOnePingPacket");
+        CustomLagConfig.useOnlyOnePingPacket = useOnlyOnePingPacket;
+        if (useOnlyOnePingPacket) {
+            context.getSource()
+                    .sendSuccess(() -> Component.literal("Only use one ping packet instead of average of 4"), false);
+        } else {
+            context.getSource()
+                    .sendSuccess(() -> Component.literal("Use average of 4 ping packets"), false);
+        }
+        return 1;
+    }
+
+    private static int setReducePingSendInterval(CommandContext<CommandSourceStack> context) {
+        long pingSendInterval = LongArgumentType.getLong(context, "pingSendInterval");
+        CustomLagConfig.pingSendInterval = pingSendInterval;
+        context.getSource()
+                .sendSuccess(() -> Component.literal("Set ping interval to %d".formatted(pingSendInterval)), false);
+        return 1;
     }
 
     private static int changeOrSetLatency(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -77,7 +108,8 @@ public class LagCommand {
         }
 
         channelPipeline.remove("delay_handler");
-        context.getSource().sendSuccess(() -> Component.literal("Remove lag for player %s".formatted(playerName)), false);
+        context.getSource()
+                .sendSuccess(() -> Component.literal("Remove lag for player %s".formatted(playerName)), false);
         return 1;
     }
 

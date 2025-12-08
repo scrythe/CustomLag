@@ -1,6 +1,7 @@
 package dev.scrythe.customlag.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import dev.scrythe.customlag.CustomLagConfig;
 import net.minecraft.network.protocol.common.ServerboundKeepAlivePacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.MinecraftServer;
@@ -8,7 +9,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.objectweb.asm.Opcodes;
-import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -20,14 +24,26 @@ public abstract class ServerCommonPacketListenerImplMixin {
 
     @Shadow
     private int latency;
+    @Shadow
+    private boolean keepAlivePending;
 
-    @Shadow protected abstract boolean isSingleplayerOwner();
-    @Shadow private boolean keepAlivePending;
+    @Shadow
+    protected abstract boolean isSingleplayerOwner();
 
     @Inject(method = "handleKeepAlive", at = @At(value = "FIELD", target = "Lnet/minecraft/server/network/ServerCommonPacketListenerImpl;latency:I", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER))
     public void handleKeepAlive(ServerboundKeepAlivePacket packet, CallbackInfo ci, @Local int i) {
-        latency = i;
-        updatePing();
+        if (CustomLagConfig.useOnlyOnePingPacket) {
+            latency = i;
+            updatePing();
+        }
+    }
+
+    @ModifyConstant(method = "keepConnectionAlive", constant = @Constant(longValue = 15000L))
+    private long keepAliveIntervalTime(long originalTime) {
+        if (CustomLagConfig.pingSendInterval != -1) {
+            return CustomLagConfig.pingSendInterval;
+        }
+        return originalTime;
     }
 
     @Redirect(method = "keepConnectionAlive", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerCommonPacketListenerImpl;isSingleplayerOwner()Z"))
