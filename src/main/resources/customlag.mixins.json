@@ -4,11 +4,12 @@
   "package": "dev.scrythe.customlag.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ServerCommonPacketListenerImplMixin",
     "ConnectionAccessor",
-    "ServerCommonPacketListenerImplAccessor"
+    "ServerCommonPacketListenerImplAccessor",
+    "ServerCommonPacketListenerImplMixin"
   ],
   "client": [
+    "GuiMixin"
   ],
   "injectors": {
     "defaultRequire": 1

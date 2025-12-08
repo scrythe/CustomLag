@@ -18,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.synchronization.SuggestionProviders;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -91,5 +92,4 @@ public class LagCommand {
             return builder.buildFuture();
         }
     }
-
 }
