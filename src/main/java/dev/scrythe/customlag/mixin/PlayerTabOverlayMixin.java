@@ -8,6 +8,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.PlayerTabOverlay;
 import net.minecraft.client.multiplayer.PlayerInfo;
+import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.Constant;
@@ -18,7 +19,7 @@ public class PlayerTabOverlayMixin {
     @Unique
     private static final int PLAYER_SLOT_EXTRA_WIDTH = 20;
 
-    @ModifyConstant(method = "render", constant = @Constant(intValue = 13))
+    @ModifyConstant(method = "render", constant = @Constant(intValue = 13), require = 0)
     private int modifySlotWidthConstant(int original) {
         return original + PLAYER_SLOT_EXTRA_WIDTH;
     }
