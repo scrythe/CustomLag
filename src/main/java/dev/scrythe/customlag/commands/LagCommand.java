@@ -36,7 +36,10 @@ public class LagCommand {
                                         .executes(LagCommand::setUseOnlyOnePingPacket)))
                         .then(Commands.literal("pingSendInterval")
                                 .then(Commands.argument("pingSendInterval", LongArgumentType.longArg())
-                                        .executes(LagCommand::setReducePingSendInterval))))
+                                        .executes(LagCommand::setReducePingSendInterval)))
+                        .then(Commands.literal("showNumeralPing")
+                                .then(Commands.argument("showNumeralPing", BoolArgumentType.bool())
+                                        .executes(LagCommand::setShowNumeralPing))))
                 .then(Commands.literal("set")
                         .then(Commands.argument("player", EntityArgument.player())
                                 .suggests(new PlayerSuggestionProvider())
@@ -66,6 +69,19 @@ public class LagCommand {
         CustomLagConfig.pingSendInterval = pingSendInterval;
         context.getSource()
                 .sendSuccess(() -> Component.literal("Set ping interval to %d".formatted(pingSendInterval)), false);
+        return 1;
+    }
+
+    private static int setShowNumeralPing(CommandContext<CommandSourceStack> context) {
+        boolean showNumeralPing = BoolArgumentType.getBool(context, "showNumeralPing");
+        CustomLagConfig.showNumeralPing = showNumeralPing;
+        if (showNumeralPing) {
+            context.getSource()
+                    .sendSuccess(() -> Component.literal("Show numeral ping"), false);
+        } else {
+            context.getSource()
+                    .sendSuccess(() -> Component.literal("Show original tab ping"), false);
+        }
         return 1;
     }
 
