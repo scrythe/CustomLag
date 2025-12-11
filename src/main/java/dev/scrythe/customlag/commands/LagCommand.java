@@ -9,6 +9,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import dev.scrythe.customlag.CustomLag;
 import dev.scrythe.customlag.CustomLagConfig;
 import dev.scrythe.customlag.DelayHandler.DelayingChannelDuplexHandler;
 import dev.scrythe.customlag.mixin.ConnectionAccessor;
@@ -53,7 +54,7 @@ public class LagCommand {
 
     private static int setUseOnlyOnePingPacket(CommandContext<CommandSourceStack> context) {
         boolean useOnlyOnePingPacket = BoolArgumentType.getBool(context, "useOnlyOnePingPacket");
-        CustomLagConfig.useOnlyOnePingPacket = useOnlyOnePingPacket;
+        CustomLag.CONFIG.useOnlyOnePingPacket = useOnlyOnePingPacket;
         if (useOnlyOnePingPacket) {
             context.getSource()
                     .sendSuccess(() -> Component.literal("Only use one ping packet instead of average of 4"), false);
@@ -66,7 +67,7 @@ public class LagCommand {
 
     private static int setReducePingSendInterval(CommandContext<CommandSourceStack> context) {
         long pingSendInterval = LongArgumentType.getLong(context, "pingSendInterval");
-        CustomLagConfig.pingSendInterval = pingSendInterval;
+        CustomLag.CONFIG.pingSendInterval = pingSendInterval;
         context.getSource()
                 .sendSuccess(() -> Component.literal("Set ping interval to %d".formatted(pingSendInterval)), false);
         return 1;
@@ -74,7 +75,7 @@ public class LagCommand {
 
     private static int setShowNumeralPing(CommandContext<CommandSourceStack> context) {
         boolean showNumeralPing = BoolArgumentType.getBool(context, "showNumeralPing");
-        CustomLagConfig.showNumeralPing = showNumeralPing;
+        CustomLag.CONFIG.showNumeralPing = showNumeralPing;
         if (showNumeralPing) {
             context.getSource()
                     .sendSuccess(() -> Component.literal("Show numeral ping"), false);

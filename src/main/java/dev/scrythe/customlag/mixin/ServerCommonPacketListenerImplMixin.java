@@ -1,7 +1,7 @@
 package dev.scrythe.customlag.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import dev.scrythe.customlag.CustomLagConfig;
+import dev.scrythe.customlag.CustomLag;
 import net.minecraft.network.protocol.common.ServerboundKeepAlivePacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.MinecraftServer;
@@ -32,7 +32,7 @@ public abstract class ServerCommonPacketListenerImplMixin {
 
     @Inject(method = "handleKeepAlive", at = @At(value = "FIELD", target = "Lnet/minecraft/server/network/ServerCommonPacketListenerImpl;latency:I", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER))
     public void handleKeepAlive(ServerboundKeepAlivePacket packet, CallbackInfo ci, @Local int i) {
-        if (CustomLagConfig.useOnlyOnePingPacket) {
+        if (CustomLag.CONFIG.useOnlyOnePingPacket) {
             latency = i;
             updatePing();
         }
@@ -40,8 +40,8 @@ public abstract class ServerCommonPacketListenerImplMixin {
 
     @ModifyConstant(method = "keepConnectionAlive", constant = @Constant(longValue = 15000L))
     private long keepAliveIntervalTime(long originalTime) {
-        if (CustomLagConfig.pingSendInterval != -1) {
-            return CustomLagConfig.pingSendInterval;
+        if (CustomLag.CONFIG.pingSendInterval != -1) {
+            return CustomLag.CONFIG.pingSendInterval;
         }
         return originalTime;
     }
