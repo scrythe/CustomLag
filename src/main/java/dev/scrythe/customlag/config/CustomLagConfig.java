@@ -1,8 +1,9 @@
-package dev.scrythe.customlag;
+package dev.scrythe.customlag.config;
 
-import folk.sisby.kaleido.lib.quiltconfig.api.annotations.Comment;
+import java.util.HashMap;
+import java.util.Map;
 
-public class CustomLagConfig2 {
+public class CustomLagConfig {
     @Comment("Whether to use only one Ping/Keepalive packet to determine the latency or the average of the latest 4.")
     @ConfigOption()
     public static boolean useOnlyOnePingPacket = false;

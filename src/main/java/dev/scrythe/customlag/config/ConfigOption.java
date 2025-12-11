@@ -1,4 +1,4 @@
-package dev.scrythe.customlag;
+package dev.scrythe.customlag.config;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

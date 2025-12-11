@@ -3,8 +3,10 @@ package dev.scrythe.customlag.commands;
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
-import dev.scrythe.customlag.ConfigOption;
-import dev.scrythe.customlag.CustomLagConfig2;
+import dev.scrythe.customlag.config.ConfigOption;
+import dev.scrythe.customlag.config.CustomLagConfig;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -17,12 +19,12 @@ public class ConfigCommand {
 
     public static LiteralArgumentBuilder<CommandSourceStack> register() {
         LiteralArgumentBuilder<CommandSourceStack> customlagCommand = Commands.literal("customlag");
-        for (Field field : CustomLagConfig2.class.getFields()) {
+        for (Field field : CustomLagConfig.class.getFields()) {
             if (!field.isAnnotationPresent(ConfigOption.class)) continue;
 
             ConfigOption annotation = field.getAnnotation(ConfigOption.class);
 
-            boolean isGameClient = false; // TEMP
+            boolean isGameClient = FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
             if (annotation.client() && !isGameClient) continue;
 
             LiteralArgumentBuilder<CommandSourceStack> fieldCommand = Commands.literal(field.getName());
@@ -48,7 +50,7 @@ public class ConfigCommand {
     private static LiteralArgumentBuilder<CommandSourceStack> getCommand(Field field) {
         return Commands.literal("get").executes(context -> {
             try {
-                Object fieldValue = field.get(CustomLagConfig2.class);
+                Object fieldValue = field.get(CustomLagConfig.class);
                 context.getSource()
                         .sendSuccess(() -> Component.literal("%s is set to %s".formatted(field.getName(), fieldValue)), false);
             } catch (IllegalAccessException e) {
@@ -64,7 +66,7 @@ public class ConfigCommand {
                 .executes(context -> {
                     Object fieldValue = context.getArgument(field.getName(), field.getType());
                     try {
-                        field.set(CustomLagConfig2.class, fieldValue);
+                        field.set(CustomLagConfig.class, fieldValue);
                         context.getSource()
                                 .sendSuccess(() -> Component.literal("Set %s to %s".formatted(field.getName(), fieldValue)), false);
                     } catch (IllegalAccessException e) {
@@ -78,13 +80,13 @@ public class ConfigCommand {
     private static LiteralArgumentBuilder<CommandSourceStack> resetCommand(Field field) {
         Object defaultValue;
         try {
-            defaultValue = field.get(CustomLagConfig2.class);
+            defaultValue = field.get(CustomLagConfig.class);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
         return Commands.literal("reset").executes(context -> {
             try {
-                field.set(CustomLagConfig2.class, defaultValue);
+                field.set(CustomLagConfig.class, defaultValue);
                 context.getSource()
                         .sendSuccess(() -> Component.literal("Reset %s to %s (default)".formatted(field.getName(), defaultValue)), false);
             } catch (IllegalAccessException e) {
@@ -101,7 +103,7 @@ public class ConfigCommand {
                 .executes(context -> {
                     Object fieldValue = context.getArgument(field.getName(), field.getType());
                     try {
-                        field.set(CustomLagConfig2.class, fieldValue);
+                        field.set(CustomLagConfig.class, fieldValue);
                         context.getSource()
                                 .sendSuccess(() -> Component.literal("Added %s to %s".formatted(fieldValue, field.getName())), false);
                     } catch (IllegalAccessException e) {

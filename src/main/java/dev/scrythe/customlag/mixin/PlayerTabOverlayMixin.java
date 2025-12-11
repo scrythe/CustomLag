@@ -2,8 +2,8 @@ package dev.scrythe.customlag.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import dev.scrythe.customlag.CustomLag;
 import dev.scrythe.customlag.LatencyColors;
+import dev.scrythe.customlag.config.CustomLagConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -23,7 +23,7 @@ public class PlayerTabOverlayMixin {
 
     @ModifyConstant(method = "render", constant = @Constant(intValue = 13), require = 0)
     private int modifySlotWidthConstant(int original) {
-        if (CustomLag.CONFIG.showNumeralPing) {
+        if (CustomLagConfig.showNumeralPing) {
             return original + PLAYER_SLOT_EXTRA_WIDTH;
         }
         return original;
@@ -41,7 +41,7 @@ public class PlayerTabOverlayMixin {
 
     @WrapMethod(method = "renderPingIcon")
     private void renderPingIconOrText(GuiGraphics guiGraphics, int width, int x, int y, PlayerInfo playerInfo, Operation<Void> original) {
-        if (CustomLag.CONFIG.showNumeralPing) {
+        if (CustomLagConfig.showNumeralPing) {
             renderPingText(guiGraphics, width, x, y, playerInfo);
         } else {
             original.call(guiGraphics, width, x, y, playerInfo);
