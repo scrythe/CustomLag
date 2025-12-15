@@ -1,13 +1,10 @@
 package dev.scrythe.customlag.commands;
 
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.suggestion.SuggestionProvider;
-import com.mojang.brigadier.suggestion.Suggestions;
-import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import dev.scrythe.customlag.CustomLag;
 import dev.scrythe.customlag.DelayHandler.DelayingChannelDuplexHandler;
 import dev.scrythe.customlag.config.CustomLagConfig;
 import dev.scrythe.customlag.mixin.ConnectionAccessor;
@@ -23,17 +20,17 @@ import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
 
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.Set;
 
 public class LagCommand {
     public static LiteralArgumentBuilder<CommandSourceStack> register(LiteralArgumentBuilder<CommandSourceStack> customLagCommand) {
         LiteralArgumentBuilder<CommandSourceStack> playerLagCommand = Commands.literal("playerLag");
         return customLagCommand.then(playerLagCommand.then(Commands.literal("get")
-                        .then(Commands.argument("player", new ExistigPlayerArgumentType())
-                                .executes(LagCommand::getPlayers))
+                        .then(Commands.argument("player", new ExistigPlayerArgumentType()).executes(LagCommand::getPlayers))
                         .executes(LagCommand::getAllPlayers))
                 .then(Commands.literal("set")
                         .then(Commands.argument("player", EntityArgument.players())
@@ -42,7 +39,8 @@ public class LagCommand {
                                         .executes(LagCommand::setPlayers))))
                 .then(Commands.literal("remove")
                         .then(Commands.argument("player", new ExistigPlayerArgumentType())
-                                .executes(LagCommand::removePlayers))));
+                                .executes(LagCommand::removePlayers)))
+                .then(Commands.literal("reset").executes(LagCommand::removeAllPlayers)));
     }
 
     private static int getPlayers(CommandContext<CommandSourceStack> context) {
@@ -55,7 +53,8 @@ public class LagCommand {
     }
 
     private static int getAllPlayers(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendSuccess(() -> Component.literal("Player=Latency Map: " + CustomLagConfig.playerLag.toString()), false);
+        context.getSource()
+                .sendSuccess(() -> Component.literal("Player=Latency Map: " + CustomLagConfig.playerLag.toString()), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -76,7 +75,6 @@ public class LagCommand {
             int prevLatency = CustomLagConfig.playerLag.get(playerName);
             context.getSource()
                     .sendSuccess(() -> Component.literal("Changed latency for (offline) player %s from %s to %s".formatted(playerName, prevLatency, latency)), false);
-
         } else {
             context.getSource()
                     .sendSuccess(() -> Component.literal("Set latency for (offline) player %s to %s".formatted(playerName, latency)), false);
@@ -109,36 +107,34 @@ public class LagCommand {
     private static int removePlayers(CommandContext<CommandSourceStack> context) {
         String playerName = ExistigPlayerArgumentType.getPlayer(context, "player");
         if (playerName.equals("@a")) {
-            context.getSource()
-                    .sendSuccess(() -> Component.literal("Removed lag for: " + CustomLagConfig.playerLag.keySet()), false);
+            return removeAllPlayers(context);
         } else {
-            CustomLagConfig.playerLag.remove(playerName);
-            context.getSource()
-                    .sendSuccess(() -> Component.literal("Remove lag for player " + playerName), false);
+            PlayerList connectedPlayerList = context.getSource().getServer().getPlayerList();
+            removePlayer(connectedPlayerList, playerName);
+            context.getSource().sendSuccess(() -> Component.literal("Remove lag for player " + playerName), false);
         }
         return Command.SINGLE_SUCCESS;
     }
 
-    private static class ExistigPlayerSuggestionProvider implements SuggestionProvider<CommandSourceStack> {
-        @Override
-        public CompletableFuture<Suggestions> getSuggestions(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
-            Collection<String> playerNames = CustomLagConfig.playerLag.keySet();
-            for (String playerName : playerNames) {
-                builder.suggest(playerName);
-            }
-            return builder.buildFuture();
+    private static int removeAllPlayers(CommandContext<CommandSourceStack> context) {
+        Set<String> playerNames = CustomLagConfig.playerLag.keySet();
+        PlayerList connectedPlayerList = context.getSource().getServer().getPlayerList();
+        for (String playerName : playerNames) {
+            removePlayer(connectedPlayerList, playerName);
         }
+        context.getSource()
+                .sendSuccess(() -> Component.literal("Removed lag for: " + playerNames), false);
+        return Command.SINGLE_SUCCESS;
     }
 
-//    private static class PlayerSuggestionProvider implements SuggestionProvider<CommandSourceStack> {
-//        @Override
-//        public CompletableFuture<Suggestions> getSuggestions(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
-//            CommandSourceStack source = context.getSource();
-//            Collection<String> playerNames = source.getOnlinePlayerNames();
-//            for (String playerName : playerNames) {
-//                builder.suggest(playerName);
-//            }
-//            return builder.buildFuture();
-//        }
-//    }
+    private static void removePlayer(PlayerList connectedPlayerList, String playerName) {
+        ServerPlayer player = connectedPlayerList.getPlayerByName(playerName);
+        if (player != null) {
+            Connection connection = ((ServerCommonPacketListenerImplAccessor) player.connection).getConnection();
+            Channel channel = ((ConnectionAccessor) connection).getChannel();
+            ChannelPipeline channelPipeline = channel.pipeline();
+            channelPipeline.remove("delay_handler");
+        }
+        CustomLagConfig.playerLag.remove(playerName);
+    }
 }
