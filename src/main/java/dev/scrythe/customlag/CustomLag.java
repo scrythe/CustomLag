@@ -3,6 +3,7 @@ package dev.scrythe.customlag;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import dev.scrythe.customlag.commands.ConfigCommand;
 import dev.scrythe.customlag.commands.EvenIntegerArgumentType;
+import dev.scrythe.customlag.commands.ExistigPlayerArgumentType;
 import dev.scrythe.customlag.commands.LagCommand;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
@@ -16,6 +17,7 @@ public class CustomLag implements ModInitializer {
     @Override
     public void onInitialize() {
         ArgumentTypeRegistry.registerArgumentType(ResourceLocation.fromNamespaceAndPath("fabric-docs", "even_integer"), EvenIntegerArgumentType.class, SingletonArgumentInfo.contextFree(EvenIntegerArgumentType::new));
+        ArgumentTypeRegistry.registerArgumentType(ResourceLocation.fromNamespaceAndPath("fabric-docs", "existing_player"), ExistigPlayerArgumentType.class, SingletonArgumentInfo.contextFree(ExistigPlayerArgumentType::new));
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             LiteralArgumentBuilder<CommandSourceStack> customLagCommand = Commands.literal("customlag")

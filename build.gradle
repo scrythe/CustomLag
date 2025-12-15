@@ -11,7 +11,7 @@ base {
 }
 
 // save the properties from $gradle to $project so they are usable by $project.<key>
-project.gradle.ext.getProperties().each {prop -> project.ext.set(prop.key, prop.value)}
+project.gradle.ext.getProperties().each { prop -> project.ext.set(prop.key, prop.value) }
 
 repositories {
     // Add repositories to retrieve artifacts from in here.

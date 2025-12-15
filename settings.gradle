@@ -9,10 +9,12 @@ pluginManagement {
 }
 
 /** Loads the VersionProperties field for the currently selected Minecraft version. */
-def loadProperties()  {
-    ArrayList<String> minecraft_versions = fileTree("versionProperties").files.name // Get all the files in "versionProperties"
+def loadProperties() {
+    // Get all the files in "versionProperties"
+    ArrayList<String> minecraft_versions = fileTree("versionProperties").files.name
     for (int i = 0; i < minecraft_versions.size(); i++) {
-        String version = minecraft_versions[i].replaceAll("\\.properties", "")  // remove the ".properties" at the end to get the versions
+        // remove the ".properties" at the end to get the versions
+        String version = minecraft_versions[i].replaceAll("\\.properties", "")
         minecraft_versions[i] = version
     }
     minecraft_versions.sort() // Sort so it always goes from oldest to newest, maybe better sort neccesary though
@@ -31,7 +33,7 @@ def loadProperties()  {
     def props = new Properties()
     props.load(new FileInputStream("$rootDir/versionProperties/${selected_minecraft_version}.properties"))
     // load the properties of the selected minecraft version and save it to $gradle
-    props.each {prop -> gradle.ext.set(prop.key, prop.value) }
+    props.each { prop -> gradle.ext.set(prop.key, prop.value) }
 }
 
 loadProperties()

@@ -4,7 +4,9 @@
   "version": "${version}",
   "name": "CustomLag",
   "description": "",
-  "authors": ["scrythe"],
+  "authors": [
+    "scrythe"
+  ],
   "contact": {},
   "license": "MIT",
   "icon": "assets/customlag/icon.png",
