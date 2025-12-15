@@ -1,8 +1,5 @@
 package dev.scrythe.customlag.config;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.minecraft.commands.CommandSourceStack;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -10,7 +7,5 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ConfigOption {
-    boolean client() default false;
-    boolean isParentCommandConfig();
+public @interface PostSetter {
 }
