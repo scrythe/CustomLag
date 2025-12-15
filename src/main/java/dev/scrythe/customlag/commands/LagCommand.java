@@ -32,9 +32,8 @@ public class LagCommand {
     public static LiteralArgumentBuilder<CommandSourceStack> register(LiteralArgumentBuilder<CommandSourceStack> customLagCommand) {
         LiteralArgumentBuilder<CommandSourceStack> playerLagCommand = Commands.literal("playerLag");
         return customLagCommand.then(playerLagCommand.then(Commands.literal("get")
-                        .then(Commands.argument("player", StringArgumentType.string())
-                                .suggests(new ExistigPlayerSuggestionProvider())
-                                .executes(LagCommand::getPlayer))
+                        .then(Commands.argument("player", new ExistigPlayerArgumentType())
+                                .executes(LagCommand::getPlayers))
                         .executes(LagCommand::getAllPlayers))
                 .then(Commands.literal("set")
                         .then(Commands.argument("player", EntityArgument.players())
@@ -46,8 +45,9 @@ public class LagCommand {
                                 .executes(LagCommand::removePlayers))));
     }
 
-    private static int getPlayer(CommandContext<CommandSourceStack> context) {
-        String playerName = StringArgumentType.getString(context, "player");
+    private static int getPlayers(CommandContext<CommandSourceStack> context) {
+        String playerName = ExistigPlayerArgumentType.getPlayer(context, "player");
+        if (playerName.equals("@a")) return getAllPlayers(context);
         int latency = CustomLagConfig.playerLag.get(playerName);
         context.getSource()
                 .sendSuccess(() -> Component.literal("Player latency of %s is set to %s".formatted(playerName, latency)), false);
@@ -55,7 +55,7 @@ public class LagCommand {
     }
 
     private static int getAllPlayers(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendSuccess(() -> Component.literal(CustomLagConfig.playerLag.toString()), false);
+        context.getSource().sendSuccess(() -> Component.literal("Player=Latency Map: " + CustomLagConfig.playerLag.toString()), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -106,12 +106,15 @@ public class LagCommand {
         CustomLagConfig.playerLag.put(playerName, latency);
     }
 
-    private static int removePlayers(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        String[] players = ExistigPlayerArgumentType.getPlayers(context, "player");
-        for (String playerName : players) {
+    private static int removePlayers(CommandContext<CommandSourceStack> context) {
+        String playerName = ExistigPlayerArgumentType.getPlayer(context, "player");
+        if (playerName.equals("@a")) {
+            context.getSource()
+                    .sendSuccess(() -> Component.literal("Removed lag for: " + CustomLagConfig.playerLag.keySet()), false);
+        } else {
             CustomLagConfig.playerLag.remove(playerName);
             context.getSource()
-                    .sendSuccess(() -> Component.literal("Remove lag for player %s".formatted(playerName)), false);
+                    .sendSuccess(() -> Component.literal("Remove lag for player " + playerName), false);
         }
         return Command.SINGLE_SUCCESS;
     }

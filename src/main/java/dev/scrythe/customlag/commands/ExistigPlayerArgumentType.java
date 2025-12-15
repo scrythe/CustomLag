@@ -11,25 +11,25 @@ import net.minecraft.commands.SharedSuggestionProvider;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-public class ExistigPlayerArgumentType implements ArgumentType<String[]> {
-
-    public static String[] getPlayers(final CommandContext<?> context, final String name) {
-        return context.getArgument(name, String[].class);
+public class ExistigPlayerArgumentType implements ArgumentType<String> {
+    public static String getPlayer(final CommandContext<?> context, final String name) {
+        return context.getArgument(name, String.class);
     }
 
     @Override
-    public String[] parse(StringReader reader) throws CommandSyntaxException {
+    public String parse(StringReader reader) throws CommandSyntaxException {
         String result = reader.getRemaining();
         reader.setCursor(reader.getTotalLength());
-        if (result.equals("@a")) return CustomLagConfig.playerLag.keySet().toArray(new String[]{});
+        if (result.equals("@a")) return result;
         Collection<String> playerNames = CustomLagConfig.playerLag.keySet();
         if (!playerNames.contains(result)) {
             throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherParseException().create("Integer must be even.");
         }
-        return new String[]{result};
+        return result;
     }
 
     @Override
