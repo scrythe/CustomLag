@@ -16,7 +16,7 @@ public class CustomLagConfig {
 
 
     @Comment("Show a numeral ping instead of the ping bar (only for client).")
-    @ConfigOption
+    @ConfigOption(client = true)
     public static boolean showNumeralPing = false;
 
     @ConfigOption(autoCommand = false)

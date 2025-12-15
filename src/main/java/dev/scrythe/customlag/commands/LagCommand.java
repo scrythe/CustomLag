@@ -12,6 +12,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.scrythe.customlag.DelayHandler.DelayingChannelDuplexHandler;
 import dev.scrythe.customlag.config.CustomLagConfig;
 import dev.scrythe.customlag.mixin.ConnectionAccessor;
+import dev.scrythe.customlag.mixin.EntitySelectorAccessor;
 import dev.scrythe.customlag.mixin.ServerCommonPacketListenerImplAccessor;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -19,11 +20,13 @@ import io.netty.channel.ChannelPipeline;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class LagCommand {
@@ -36,7 +39,8 @@ public class LagCommand {
                         .executes(LagCommand::getAllPlayers))
                 .then(Commands.literal("set")
                         .then(Commands.argument("player", EntityArgument.player())
-                                .then(Commands.argument("latency", IntegerArgumentType.integer(0))
+                                .suggests(EntityArgument.player()::listSuggestions)
+                                .then(Commands.argument("latency", new EvenIntegerArgumentType())
                                         .executes(LagCommand::setPlayer))))
                 .then(Commands.literal("remove")
                         .then(Commands.argument("player", EntityArgument.player())
@@ -58,27 +62,45 @@ public class LagCommand {
     }
 
     private static int setPlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerPlayer player = EntityArgument.getPlayer(context, "player");
-        String playerName = player.getName().getString();
-        int latency = IntegerArgumentType.getInteger(context, "latency");
+        EntitySelector entitySelector = context.getArgument("player", EntitySelector.class);
+        List<ServerPlayer> players = entitySelector.findPlayers(context.getSource());
+        int latency = EvenIntegerArgumentType.getInteger(context, "latency");
 
-        Connection connection = ((ServerCommonPacketListenerImplAccessor) player.connection).getConnection();
-        Channel channel = ((ConnectionAccessor) connection).getChannel();
-        ChannelPipeline channelPipeline = channel.pipeline();
+        if (players.size() != 1) {
+            String playerName = ((EntitySelectorAccessor) entitySelector).getPlayerName();
+            if (CustomLagConfig.playerLag.containsKey(playerName)) {
+                int prevLatency = CustomLagConfig.playerLag.get(playerName);
+                context.getSource()
+                        .sendSuccess(() -> Component.literal("Changed latency for (offline) player %s from %s to %s".formatted(playerName, prevLatency, latency)), false);
 
-        ChannelHandler channelHandler = channelPipeline.get("delay_handler");
-        if (channelHandler instanceof DelayingChannelDuplexHandler delayingChannelDuplexHandler) {
-            int prevLatency = delayingChannelDuplexHandler.getLatency();
-            delayingChannelDuplexHandler.changeLatency(latency);
-            context.getSource()
-                    .sendSuccess(() -> Component.literal("Changed latency for player %s from %s to %s".formatted(playerName, prevLatency, latency)), false);
+            } else {
+                context.getSource()
+                        .sendSuccess(() -> Component.literal("Set latency for (offline) player %s to %s".formatted(playerName, latency)), false);
+            }
+            CustomLagConfig.playerLag.put(playerName, latency);
         } else {
-            DelayingChannelDuplexHandler delayingChannelDuplexHandler = new DelayingChannelDuplexHandler(latency);
-            channelPipeline.addBefore("packet_handler", "delay_handler", delayingChannelDuplexHandler);
-            context.getSource()
-                    .sendSuccess(() -> Component.literal("Set latency for player %s to %s".formatted(playerName, latency)), false);
+            ServerPlayer player = EntityArgument.getPlayer(context, "player");
+            String playerName = player.getName().getString();
+
+            Connection connection = ((ServerCommonPacketListenerImplAccessor) player.connection).getConnection();
+            Channel channel = ((ConnectionAccessor) connection).getChannel();
+            ChannelPipeline channelPipeline = channel.pipeline();
+
+            ChannelHandler channelHandler = channelPipeline.get("delay_handler");
+            if (channelHandler instanceof DelayingChannelDuplexHandler delayingChannelDuplexHandler) {
+                int prevLatency = delayingChannelDuplexHandler.getLatency();
+                delayingChannelDuplexHandler.changeLatency(latency);
+                context.getSource()
+                        .sendSuccess(() -> Component.literal("Changed latency for player %s from %s to %s".formatted(playerName, prevLatency, latency)), false);
+            } else {
+                DelayingChannelDuplexHandler delayingChannelDuplexHandler = new DelayingChannelDuplexHandler(latency);
+                channelPipeline.addBefore("packet_handler", "delay_handler", delayingChannelDuplexHandler);
+                context.getSource()
+                        .sendSuccess(() -> Component.literal("Set latency for player %s to %s".formatted(playerName, latency)), false);
+            }
+            CustomLagConfig.playerLag.put(playerName, latency);
         }
-        CustomLagConfig.playerLag.put(playerName, latency);
+
         return Command.SINGLE_SUCCESS;
     }
 
