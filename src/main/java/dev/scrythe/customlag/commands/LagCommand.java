@@ -1,6 +1,8 @@
 package dev.scrythe.customlag.commands;
 
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -8,6 +10,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.scrythe.customlag.DelayHandler.DelayingChannelDuplexHandler;
+import dev.scrythe.customlag.config.CustomLagConfig;
 import dev.scrythe.customlag.mixin.ConnectionAccessor;
 import dev.scrythe.customlag.mixin.ServerCommonPacketListenerImplAccessor;
 import io.netty.channel.Channel;
@@ -25,20 +28,36 @@ import java.util.concurrent.CompletableFuture;
 
 public class LagCommand {
     public static LiteralArgumentBuilder<CommandSourceStack> register(LiteralArgumentBuilder<CommandSourceStack> customLagCommand) {
-        return customLagCommand
-                .requires(source -> source.hasPermission(2))
+        LiteralArgumentBuilder<CommandSourceStack> playerLagCommand = Commands.literal("playerLag");
+        return customLagCommand.then(playerLagCommand.then(Commands.literal("get")
+                        .then(Commands.argument("player", StringArgumentType.string())
+                                .suggests(new ExistigPlayerSuggestionProvider())
+                                .executes(LagCommand::getPlayer))
+                        .executes(LagCommand::getAllPlayers))
                 .then(Commands.literal("set")
                         .then(Commands.argument("player", EntityArgument.player())
-                                .suggests(new PlayerSuggestionProvider())
                                 .then(Commands.argument("latency", IntegerArgumentType.integer(0))
-                                        .executes(LagCommand::changeOrSetLatency))))
+                                        .executes(LagCommand::setPlayer))))
                 .then(Commands.literal("remove")
                         .then(Commands.argument("player", EntityArgument.player())
-                                .suggests(new PlayerSuggestionProvider())
-                                .executes(LagCommand::removeLatency)));
+                                .suggests(new ExistigPlayerSuggestionProvider())
+                                .executes(LagCommand::removePlayer))));
     }
 
-    private static int changeOrSetLatency(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int getPlayer(CommandContext<CommandSourceStack> context) {
+        String playerName = StringArgumentType.getString(context, "player");
+        int latency = CustomLagConfig.playerLag.get(playerName);
+        context.getSource()
+                .sendSuccess(() -> Component.literal("Player latency of %s is set to %s".formatted(playerName, latency)), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int getAllPlayers(CommandContext<CommandSourceStack> context) {
+        context.getSource().sendSuccess(() -> Component.literal(CustomLagConfig.playerLag.toString()), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int setPlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = EntityArgument.getPlayer(context, "player");
         String playerName = player.getName().getString();
         int latency = IntegerArgumentType.getInteger(context, "latency");
@@ -59,10 +78,11 @@ public class LagCommand {
             context.getSource()
                     .sendSuccess(() -> Component.literal("Set latency for player %s to %s".formatted(playerName, latency)), false);
         }
-        return 1;
+        CustomLagConfig.playerLag.put(playerName, latency);
+        return Command.SINGLE_SUCCESS;
     }
 
-    private static int removeLatency(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int removePlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = EntityArgument.getPlayer(context, "player");
         String playerName = player.getName().getString();
 
@@ -73,24 +93,35 @@ public class LagCommand {
         if (channelPipeline.get("delay_handler") == null) {
             context.getSource()
                     .sendSuccess(() -> Component.literal("Lag for %s is not set. No need to remove".formatted(playerName)), false);
-            return 0;
+        } else {
+            channelPipeline.remove("delay_handler");
+            context.getSource()
+                    .sendSuccess(() -> Component.literal("Remove lag for player %s".formatted(playerName)), false);
         }
-
-        channelPipeline.remove("delay_handler");
-        context.getSource()
-                .sendSuccess(() -> Component.literal("Remove lag for player %s".formatted(playerName)), false);
-        return 1;
+        CustomLagConfig.playerLag.remove(playerName);
+        return Command.SINGLE_SUCCESS;
     }
 
-    private static class PlayerSuggestionProvider implements SuggestionProvider<CommandSourceStack> {
+    private static class ExistigPlayerSuggestionProvider implements SuggestionProvider<CommandSourceStack> {
         @Override
         public CompletableFuture<Suggestions> getSuggestions(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
-            CommandSourceStack source = context.getSource();
-            Collection<String> playerNames = source.getOnlinePlayerNames();
+            Collection<String> playerNames = CustomLagConfig.playerLag.keySet();
             for (String playerName : playerNames) {
                 builder.suggest(playerName);
             }
             return builder.buildFuture();
         }
     }
+
+//    private static class PlayerSuggestionProvider implements SuggestionProvider<CommandSourceStack> {
+//        @Override
+//        public CompletableFuture<Suggestions> getSuggestions(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
+//            CommandSourceStack source = context.getSource();
+//            Collection<String> playerNames = source.getOnlinePlayerNames();
+//            for (String playerName : playerNames) {
+//                builder.suggest(playerName);
+//            }
+//            return builder.buildFuture();
+//        }
+//    }
 }

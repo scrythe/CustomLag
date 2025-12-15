@@ -1,7 +1,5 @@
 package dev.scrythe.customlag;
 
-import org.spongepowered.asm.mixin.Unique;
-
 import java.awt.*;
 
 public class LatencyColors {

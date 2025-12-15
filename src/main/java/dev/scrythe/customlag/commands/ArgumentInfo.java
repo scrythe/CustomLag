@@ -1,8 +1,12 @@
 package dev.scrythe.customlag.commands;
 
 import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import net.minecraft.commands.CommandSourceStack;
 
-public record ArgumentInfo<P, R>(ArgumentType<P> argumentType,
-                              ArgumentExtractor<R> getArgumentValue) {
+import java.util.function.BiFunction;
+
+public record ArgumentInfo<T>(ArgumentType<T> argumentType,
+                              BiFunction<CommandContext<CommandSourceStack>, String, T> getArgumentValue) {
 }
 
