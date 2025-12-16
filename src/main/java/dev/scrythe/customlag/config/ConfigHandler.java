@@ -3,95 +3,46 @@ package dev.scrythe.customlag.config;
 import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
 import io.github.wasabithumb.jtoml.except.TomlException;
-import io.github.wasabithumb.jtoml.except.TomlIOException;
+import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
-import org.tomlj.Toml;
-import org.tomlj.TomlParseResult;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class ConfigHandler {
-    public static void loadConfig(Path configFile) throws IOException {
-//        JToml toml = JToml.jToml();
-//        TomlDocument doc;
-//        try {
-//            doc = toml.read(configFile);
-//        } catch (TomlException ignored) {
-//            return;
-//        }
-//
-//        for (Field field : CustomLagConfig.class.getFields()) {
-//            if (!field.isAnnotationPresent(ConfigOption.class)) continue;
-//            if (!doc.contains(field.getName())) continue;
-//            TomlValue fieldValue = doc.get(field.getName());
-//            try {
-//                field.set(null, fieldValue);
-//            } catch (IllegalArgumentException | IllegalAccessException ignored) {}
-//        }
-    }
-
-    public static void writeConfig(Path configFile) {
-//        JToml toml = JToml.jToml();
-        CustomLagConfigTest config = new CustomLagConfigTest();
-        config.playerLag.put("hm", 2);
-        config.playerLag.put("hms", 2);
-        
-//        TomlTable table = toml.toToml(CustomLagConfigTest.class, config);
-//        toml.write(configFile, table);
-//        System.out.println("hm");
+    public static CustomLagConfigTest loadConfig(Path configFile) {
+        JToml toml = JToml.jToml();
 
         try {
-            writeConfig3(configFile, config);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
+            TomlDocument doc = toml.read(configFile);
+            return toml.fromToml(CustomLagConfigTest.class, doc);
+        } catch (TomlException | IllegalArgumentException ignored) {
+            return new CustomLagConfigTest();
         }
     }
 
-    public static void writeConfig2(Path configFile, CustomLagConfigTest config) throws IllegalAccessException {
-        StringBuilder sb = new StringBuilder();
-        for (Field field: CustomLagConfigTest.class.getFields()) {
-            if (field.isAnnotationPresent(Comment.class)) {
-                Comment comment = field.getAnnotation(Comment.class);
-                sb.append("# %s\n".formatted(comment.value()));
-            } else {
-                Comments comments = field.getAnnotation(Comments.class);
-                for (Comment comment: comments.value()){
-                    sb.append("# %s\n".formatted(comment.value()));
-                }
-            }
-
-            if (field.getGenericType() instanceof ParameterizedType) {
-                Type[] mapTypes = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
-                sb.append("[%s]\n".formatted(field.getName()));
-                Map<String, Object> map = (Map<String, Object>) field.get(config);
-                for (Map.Entry<String, Object> entry: map.entrySet()) {
-                    sb.append("%s = %s\n".formatted(entry.getKey(), entry.getValue()));
-                }
-            } else {
-                sb.append("%s = %s\n\n".formatted(field.getName(), field.get(config)));
-            }
-        }
+    public static void writeConfig(Path configFile, CustomLagConfigTest config) {
         try (FileWriter writer = new FileWriter(configFile.toFile())) {
-            writer.write(sb.toString());
-        } catch (IOException e) {
+            String configTomlString = getConfigTomlString(config);
+            writer.write(configTomlString);
+        } catch (IOException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static void writeConfig3(Path configFile, CustomLagConfigTest config) throws IllegalAccessException {
+    private static String getConfigTomlString(CustomLagConfigTest config) throws IllegalAccessException {
         StringBuilder sb = new StringBuilder();
-        List<Field> tableTypeFields = new ArrayList<>() {};
-        for (Field field: CustomLagConfigTest.class.getFields()) {
+        List<Field> tableTypeFields = new ArrayList<>() {
+        };
+        for (Field field : CustomLagConfigTest.class.getFields()) {
+            if (!field.isAnnotationPresent(ConfigOption.class)) continue;
             if (field.getGenericType() instanceof ParameterizedType) {
                 tableTypeFields.add(field);
                 continue;
@@ -100,31 +51,35 @@ public class ConfigHandler {
             sb.append("%s = %s\n\n".formatted(field.getName(), field.get(config)));
         }
 
-        for (Field field: tableTypeFields) {
+        for (Field field : tableTypeFields) {
             addComments(field, sb);
             sb.append("[%s]\n".formatted(field.getName()));
-            Map<String, Object> map = (Map<String, Object>) field.get(config);
-            for (Map.Entry<String, Object> entry: map.entrySet()) {
-                sb.append("%s = %s\n".formatted(entry.getKey(), entry.getValue()));
+            if (field.get(config) instanceof Map<?, ?> map) {
+                for (Map.Entry<?, ?> entry : map.entrySet()) {
+                    sb.append("%s = %s\n".formatted(entry.getKey(), entry.getValue()));
+                }
             }
         }
 
-        try (FileWriter writer = new FileWriter(configFile.toFile())) {
-            writer.write(sb.toString());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (tableTypeFields.isEmpty()) {
+            sb.setLength(sb.length() - 2);
+        } else {
+            sb.setLength(sb.length() - 1);
         }
+
+        return sb.toString();
     }
 
-    public static void addComments(Field field, StringBuilder sb) {
+    private static void addComments(Field field, StringBuilder sb) {
+        Comment[] comments = null;
         if (field.isAnnotationPresent(Comment.class)) {
-            Comment comment = field.getAnnotation(Comment.class);
+            comments = new Comment[]{field.getAnnotation(Comment.class)};
+        } else if (field.isAnnotationPresent(Comments.class)) {
+            comments = field.getAnnotation(Comments.class).value();
+        }
+        if (comments == null) return;
+        for (Comment comment : comments) {
             sb.append("# %s\n".formatted(comment.value()));
-        } else {
-            Comments comments = field.getAnnotation(Comments.class);
-            for (Comment comment: comments.value()){
-                sb.append("# %s\n".formatted(comment.value()));
-            }
         }
     }
 }
