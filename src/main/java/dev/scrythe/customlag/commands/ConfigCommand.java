@@ -23,6 +23,7 @@ import java.util.Map;
 
 public class ConfigCommand {
     private static final Map<Class<?>, ArgumentInfo<?>> argumentTypeMap = Map.of(Integer.class, new ArgumentInfo<>(IntegerArgumentType.integer(), IntegerArgumentType::getInteger), boolean.class, new ArgumentInfo<>(BoolArgumentType.bool(), BoolArgumentType::getBool), long.class, new ArgumentInfo<>(LongArgumentType.longArg(), LongArgumentType::getLong));
+    private static final CustomLagConfig defaultConfig = new CustomLagConfig();
 
     public static LiteralArgumentBuilder<CommandSourceStack> register(LiteralArgumentBuilder<CommandSourceStack> customLagCommand) {
         LiteralArgumentBuilder<CommandSourceStack> customLagConfigCommand = Commands.literal("config");
@@ -87,7 +88,7 @@ public class ConfigCommand {
     private static LiteralArgumentBuilder<CommandSourceStack> resetCommand(Field field) {
         Object defaultValue;
         try {
-            defaultValue = field.get(CustomLag.CONFIG);
+            defaultValue = field.get(defaultConfig);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
