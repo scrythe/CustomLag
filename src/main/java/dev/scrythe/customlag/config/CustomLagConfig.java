@@ -1,9 +1,15 @@
 package dev.scrythe.customlag.config;
 
+import io.github.wasabithumb.jtoml.serial.TomlSerializable;
+import net.fabricmc.loader.api.FabricLoader;
+
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CustomLagConfig {
+public class CustomLagConfig implements TomlSerializable {
+    public static final Path CONFIG_FILE = FabricLoader.getInstance().getConfigDir().resolve("customlag.toml");
+
     @Comment("Whether to use only one Ping/Keepalive packet to determine the latency or the average of the latest 4.")
     @ConfigOption
     public static boolean useOnlyOnePingPacket = false;

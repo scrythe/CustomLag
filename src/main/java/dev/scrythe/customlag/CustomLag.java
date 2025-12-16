@@ -5,6 +5,9 @@ import dev.scrythe.customlag.commands.ConfigCommand;
 import dev.scrythe.customlag.commands.EvenIntegerArgumentType;
 import dev.scrythe.customlag.commands.ExistigPlayerArgumentType;
 import dev.scrythe.customlag.commands.LagCommand;
+import dev.scrythe.customlag.config.ConfigHandler;
+import dev.scrythe.customlag.config.CustomLagConfig;
+import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -12,6 +15,8 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.synchronization.SingletonArgumentInfo;
 import net.minecraft.resources.ResourceLocation;
+
+import java.io.IOException;
 
 public class CustomLag implements ModInitializer {
     @Override
@@ -25,5 +30,10 @@ public class CustomLag implements ModInitializer {
             dispatcher.register(LagCommand.register(customLagCommand));
             dispatcher.register(ConfigCommand.register(customLagCommand));
         });
+
+        try {
+            ConfigHandler.loadConfig(CustomLagConfig.CONFIG_FILE);
+        } catch (IOException ignored) {}
+        ConfigHandler.writeConfig(CustomLagConfig.CONFIG_FILE);
     }
 }
