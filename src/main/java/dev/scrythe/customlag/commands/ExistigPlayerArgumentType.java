@@ -6,12 +6,11 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import dev.scrythe.customlag.config.CustomLagConfig;
+import dev.scrythe.customlag.CustomLag;
 import net.minecraft.commands.SharedSuggestionProvider;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -25,7 +24,7 @@ public class ExistigPlayerArgumentType implements ArgumentType<String> {
         String result = reader.getRemaining();
         reader.setCursor(reader.getTotalLength());
         if (result.equals("@a")) return result;
-        Collection<String> playerNames = CustomLagConfig.playerLag.keySet();
+        Collection<String> playerNames = CustomLag.CONFIG.playerLag.keySet();
         if (!playerNames.contains(result)) {
             throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherParseException().create("Integer must be even.");
         }
@@ -34,7 +33,7 @@ public class ExistigPlayerArgumentType implements ArgumentType<String> {
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-        Set<String> playerNames = CustomLagConfig.playerLag.keySet();
+        Set<String> playerNames = CustomLag.CONFIG.playerLag.keySet();
         if (!playerNames.isEmpty()) {
             playerNames = new HashSet<>(playerNames);
             playerNames.add("@a");

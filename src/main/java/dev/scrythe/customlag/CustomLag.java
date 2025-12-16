@@ -7,20 +7,20 @@ import dev.scrythe.customlag.commands.ExistigPlayerArgumentType;
 import dev.scrythe.customlag.commands.LagCommand;
 import dev.scrythe.customlag.config.ConfigHandler;
 import dev.scrythe.customlag.config.CustomLagConfig;
-import dev.scrythe.customlag.config.CustomLagConfigTest;
-import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.synchronization.SingletonArgumentInfo;
 import net.minecraft.resources.ResourceLocation;
 
-import java.io.IOException;
+import java.nio.file.Path;
 
 public class CustomLag implements ModInitializer {
-    CustomLagConfigTest CONFIG;
+    public static final Path CONFIG_FILE = FabricLoader.getInstance().getConfigDir().resolve("customlag.toml");
+    public static CustomLagConfig CONFIG;
 
     @Override
     public void onInitialize() {
@@ -34,7 +34,7 @@ public class CustomLag implements ModInitializer {
             dispatcher.register(ConfigCommand.register(customLagCommand));
         });
 
-        CONFIG = ConfigHandler.loadConfig(CustomLagConfig.CONFIG_FILE);
-        ConfigHandler.writeConfig(CustomLagConfig.CONFIG_FILE, CONFIG);
+        CONFIG = ConfigHandler.loadConfig(CONFIG_FILE);
+        ConfigHandler.writeConfig(CONFIG_FILE, CONFIG);
     }
 }

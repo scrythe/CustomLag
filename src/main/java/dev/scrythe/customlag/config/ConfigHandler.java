@@ -3,9 +3,6 @@ package dev.scrythe.customlag.config;
 import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
 import io.github.wasabithumb.jtoml.except.TomlException;
-import io.github.wasabithumb.jtoml.key.TomlKey;
-import io.github.wasabithumb.jtoml.value.TomlValue;
-import io.github.wasabithumb.jtoml.value.table.TomlTable;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -17,18 +14,18 @@ import java.util.List;
 import java.util.Map;
 
 public class ConfigHandler {
-    public static CustomLagConfigTest loadConfig(Path configFile) {
+    public static CustomLagConfig loadConfig(Path configFile) {
         JToml toml = JToml.jToml();
 
         try {
             TomlDocument doc = toml.read(configFile);
-            return toml.fromToml(CustomLagConfigTest.class, doc);
+            return toml.fromToml(CustomLagConfig.class, doc);
         } catch (TomlException | IllegalArgumentException ignored) {
-            return new CustomLagConfigTest();
+            return new CustomLagConfig();
         }
     }
 
-    public static void writeConfig(Path configFile, CustomLagConfigTest config) {
+    public static void writeConfig(Path configFile, CustomLagConfig config) {
         try (FileWriter writer = new FileWriter(configFile.toFile())) {
             String configTomlString = getConfigTomlString(config);
             writer.write(configTomlString);
@@ -37,11 +34,11 @@ public class ConfigHandler {
         }
     }
 
-    private static String getConfigTomlString(CustomLagConfigTest config) throws IllegalAccessException {
+    private static String getConfigTomlString(CustomLagConfig config) throws IllegalAccessException {
         StringBuilder sb = new StringBuilder();
         List<Field> tableTypeFields = new ArrayList<>() {
         };
-        for (Field field : CustomLagConfigTest.class.getFields()) {
+        for (Field field : CustomLagConfig.class.getFields()) {
             if (!field.isAnnotationPresent(ConfigOption.class)) continue;
             if (field.getGenericType() instanceof ParameterizedType) {
                 tableTypeFields.add(field);

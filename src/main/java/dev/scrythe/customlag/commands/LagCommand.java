@@ -6,7 +6,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.scrythe.customlag.CustomLag;
 import dev.scrythe.customlag.DelayHandler.DelayingChannelDuplexHandler;
-import dev.scrythe.customlag.config.CustomLagConfig;
+import dev.scrythe.customlag.config.ConfigHandler;
 import dev.scrythe.customlag.mixin.ConnectionAccessor;
 import dev.scrythe.customlag.mixin.EntitySelectorAccessor;
 import dev.scrythe.customlag.mixin.ServerCommonPacketListenerImplAccessor;
@@ -24,7 +24,6 @@ import net.minecraft.server.players.PlayerList;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 public class LagCommand {
     public static LiteralArgumentBuilder<CommandSourceStack> register(LiteralArgumentBuilder<CommandSourceStack> customLagCommand) {
@@ -46,7 +45,7 @@ public class LagCommand {
     private static int getPlayers(CommandContext<CommandSourceStack> context) {
         String playerName = ExistigPlayerArgumentType.getPlayer(context, "player");
         if (playerName.equals("@a")) return getAllPlayers(context);
-        int latency = CustomLagConfig.playerLag.get(playerName);
+        int latency = CustomLag.CONFIG.playerLag.get(playerName);
         context.getSource()
                 .sendSuccess(() -> Component.literal("Player latency of %s is set to %s".formatted(playerName, latency)), false);
         return Command.SINGLE_SUCCESS;
@@ -54,7 +53,7 @@ public class LagCommand {
 
     private static int getAllPlayers(CommandContext<CommandSourceStack> context) {
         context.getSource()
-                .sendSuccess(() -> Component.literal("Player=Latency Map: " + CustomLagConfig.playerLag.toString()), false);
+                .sendSuccess(() -> Component.literal("Player=Latency Map: " + CustomLag.CONFIG.playerLag.toString()), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -66,20 +65,21 @@ public class LagCommand {
         for (ServerPlayer player : players) {
             setPlayer(context, player, latency);
         }
+        ConfigHandler.writeConfig(CustomLag.CONFIG_FILE, CustomLag.CONFIG);
         return Command.SINGLE_SUCCESS;
     }
 
     private static void setPlayerName(CommandContext<CommandSourceStack> context, EntitySelector entitySelector, int latency) {
         String playerName = ((EntitySelectorAccessor) entitySelector).getPlayerName();
-        if (CustomLagConfig.playerLag.containsKey(playerName)) {
-            int prevLatency = CustomLagConfig.playerLag.get(playerName);
+        if (CustomLag.CONFIG.playerLag.containsKey(playerName)) {
+            int prevLatency = CustomLag.CONFIG.playerLag.get(playerName);
             context.getSource()
                     .sendSuccess(() -> Component.literal("Changed latency for (offline) player %s from %s to %s".formatted(playerName, prevLatency, latency)), false);
         } else {
             context.getSource()
                     .sendSuccess(() -> Component.literal("Set latency for (offline) player %s to %s".formatted(playerName, latency)), false);
         }
-        CustomLagConfig.playerLag.put(playerName, latency);
+        CustomLag.CONFIG.playerLag.put(playerName, latency);
     }
 
     private static void setPlayer(CommandContext<CommandSourceStack> context, ServerPlayer player, int latency) {
@@ -101,7 +101,7 @@ public class LagCommand {
             context.getSource()
                     .sendSuccess(() -> Component.literal("Set latency for player %s to %s".formatted(playerName, latency)), false);
         }
-        CustomLagConfig.playerLag.put(playerName, latency);
+        CustomLag.CONFIG.playerLag.put(playerName, latency);
     }
 
     private static int removePlayers(CommandContext<CommandSourceStack> context) {
@@ -112,18 +112,20 @@ public class LagCommand {
             PlayerList connectedPlayerList = context.getSource().getServer().getPlayerList();
             removePlayer(connectedPlayerList, playerName);
             context.getSource().sendSuccess(() -> Component.literal("Remove lag for player " + playerName), false);
+            ConfigHandler.writeConfig(CustomLag.CONFIG_FILE, CustomLag.CONFIG);
+            return Command.SINGLE_SUCCESS;
         }
-        return Command.SINGLE_SUCCESS;
     }
 
     private static int removeAllPlayers(CommandContext<CommandSourceStack> context) {
-        Set<String> playerNames = CustomLagConfig.playerLag.keySet();
+        String[] playerNames = CustomLag.CONFIG.playerLag.keySet().toArray(new String[]{});
         PlayerList connectedPlayerList = context.getSource().getServer().getPlayerList();
         for (String playerName : playerNames) {
             removePlayer(connectedPlayerList, playerName);
         }
         context.getSource()
-                .sendSuccess(() -> Component.literal("Removed lag for: " + playerNames), false);
+                .sendSuccess(() -> Component.literal("Removed lag for: " + Arrays.toString(playerNames)), false);
+        ConfigHandler.writeConfig(CustomLag.CONFIG_FILE, CustomLag.CONFIG);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -135,6 +137,6 @@ public class LagCommand {
             ChannelPipeline channelPipeline = channel.pipeline();
             channelPipeline.remove("delay_handler");
         }
-        CustomLagConfig.playerLag.remove(playerName);
+        CustomLag.CONFIG.playerLag.remove(playerName);
     }
 }

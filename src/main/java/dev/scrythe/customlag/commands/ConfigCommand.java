@@ -8,6 +8,8 @@ import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import dev.scrythe.customlag.CustomLag;
+import dev.scrythe.customlag.config.ConfigHandler;
 import dev.scrythe.customlag.config.ConfigOption;
 import dev.scrythe.customlag.config.CustomLagConfig;
 import net.fabricmc.api.EnvType;
@@ -51,7 +53,7 @@ public class ConfigCommand {
 
     private static int executeGetCommand(CommandContext<CommandSourceStack> context, Field field) {
         try {
-            Object fieldValue = field.get(CustomLagConfig.class);
+            Object fieldValue = field.get(CustomLag.CONFIG);
             context.getSource()
                     .sendSuccess(() -> Component.literal("%s is set to %s".formatted(field.getName(), fieldValue)), false);
             return Command.SINGLE_SUCCESS;
@@ -71,9 +73,10 @@ public class ConfigCommand {
     private static int executeSetCommand(CommandContext<CommandSourceStack> context, Field field) {
         try {
             Object fieldValue = argumentTypeMap.get(field.getType()).getArgumentValue().apply(context, field.getName());
-            field.set(CustomLagConfig.class, fieldValue);
+            field.set(CustomLag.CONFIG, fieldValue);
             context.getSource()
                     .sendSuccess(() -> Component.literal("Set %s to %s".formatted(field.getName(), fieldValue)), false);
+            ConfigHandler.writeConfig(CustomLag.CONFIG_FILE, CustomLag.CONFIG);
             return Command.SINGLE_SUCCESS;
         } catch (IllegalAccessException e) {
             context.getSource().sendFailure(Component.literal(e.toString()));
@@ -84,7 +87,7 @@ public class ConfigCommand {
     private static LiteralArgumentBuilder<CommandSourceStack> resetCommand(Field field) {
         Object defaultValue;
         try {
-            defaultValue = field.get(CustomLagConfig.class);
+            defaultValue = field.get(CustomLag.CONFIG);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -93,9 +96,10 @@ public class ConfigCommand {
 
     private static int executeResetCommand(CommandContext<CommandSourceStack> context, Field field, Object defaultValue) {
         try {
-            field.set(CustomLagConfig.class, defaultValue);
+            field.set(CustomLag.CONFIG, defaultValue);
             context.getSource()
                     .sendSuccess(() -> Component.literal("Reset %s to %s (default)".formatted(field.getName(), defaultValue)), false);
+            ConfigHandler.writeConfig(CustomLag.CONFIG_FILE, CustomLag.CONFIG);
             return Command.SINGLE_SUCCESS;
         } catch (IllegalAccessException e) {
             context.getSource().sendFailure(Component.literal(e.toString()));
