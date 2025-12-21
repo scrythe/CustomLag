@@ -1,4 +1,4 @@
-package dev.scrythe.customlag.commands;
+package dev.scrythe.customlag.commands.arguments;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;

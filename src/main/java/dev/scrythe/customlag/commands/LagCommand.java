@@ -6,6 +6,8 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.scrythe.customlag.CustomLag;
 import dev.scrythe.customlag.DelayHandler.DelayingChannelDuplexHandler;
+import dev.scrythe.customlag.commands.arguments.EvenIntegerArgumentType;
+import dev.scrythe.customlag.commands.arguments.ExistigPlayerArgumentType;
 import dev.scrythe.customlag.config.ConfigHandler;
 import dev.scrythe.customlag.mixin.ConnectionAccessor;
 import dev.scrythe.customlag.mixin.EntitySelectorAccessor;

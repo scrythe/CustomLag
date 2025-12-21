@@ -3,12 +3,13 @@ package dev.scrythe.customlag;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import dev.scrythe.customlag.DelayHandler.DelayingChannelDuplexHandler;
 import dev.scrythe.customlag.commands.*;
+import dev.scrythe.customlag.commands.arguments.EvenIntegerArgumentType;
+import dev.scrythe.customlag.commands.arguments.ExistigPlayerArgumentType;
 import dev.scrythe.customlag.config.ConfigHandler;
 import dev.scrythe.customlag.config.CustomLagConfig;
 import dev.scrythe.customlag.mixin.ConnectionAccessor;
 import dev.scrythe.customlag.mixin.ServerCommonPacketListenerImplAccessor;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
@@ -39,6 +40,8 @@ public class CustomLag implements ModInitializer {
             dispatcher.register(LagCommand.register(customLagCommand));
             dispatcher.register(ConfigCommand.register(customLagCommand));
             dispatcher.register(ResetCommand.register(customLagCommand));
+            dispatcher.register(ReloadCommand.register(customLagCommand));
+            dispatcher.register(GetCommand.register(customLagCommand));
         });
 
         CONFIG = ConfigHandler.loadConfig(CONFIG_FILE);

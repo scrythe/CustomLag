@@ -1,5 +1,7 @@
 package dev.scrythe.customlag.config;
 
+import dev.scrythe.customlag.config.retentions.Comment;
+import dev.scrythe.customlag.config.retentions.ConfigOption;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 
 import java.util.HashMap;

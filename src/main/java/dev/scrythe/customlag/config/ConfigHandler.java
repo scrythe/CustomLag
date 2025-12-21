@@ -1,5 +1,8 @@
 package dev.scrythe.customlag.config;
 
+import dev.scrythe.customlag.config.retentions.Comment;
+import dev.scrythe.customlag.config.retentions.Comments;
+import dev.scrythe.customlag.config.retentions.ConfigOption;
 import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
 import io.github.wasabithumb.jtoml.except.TomlException;
