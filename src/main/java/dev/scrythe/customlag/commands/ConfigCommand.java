@@ -23,10 +23,10 @@ import java.util.Map;
 
 public class ConfigCommand {
     private static final Map<Class<?>, ArgumentInfo<?>> argumentTypeMap = Map.of(Integer.class, new ArgumentInfo<>(IntegerArgumentType.integer(), IntegerArgumentType::getInteger), boolean.class, new ArgumentInfo<>(BoolArgumentType.bool(), BoolArgumentType::getBool), long.class, new ArgumentInfo<>(LongArgumentType.longArg(), LongArgumentType::getLong));
-    private static final CustomLagConfig defaultConfig = new CustomLagConfig();
+    public static final CustomLagConfig defaultConfig = new CustomLagConfig();
 
     public static LiteralArgumentBuilder<CommandSourceStack> register(LiteralArgumentBuilder<CommandSourceStack> customLagCommand) {
-        LiteralArgumentBuilder<CommandSourceStack> customLagConfigCommand = Commands.literal("config");
+        LiteralArgumentBuilder<CommandSourceStack> configCommand = Commands.literal("config");
         for (Field field : CustomLagConfig.class.getFields()) {
             if (!field.isAnnotationPresent(ConfigOption.class)) continue;
 
@@ -42,10 +42,10 @@ public class ConfigCommand {
             fieldCommand = fieldCommand.then(resetCommand(field));
             fieldCommand = fieldCommand.then(setCommand(field));
 
-            customLagConfigCommand = customLagConfigCommand.then(fieldCommand);
+            configCommand = configCommand.then(fieldCommand);
         }
 
-        return customLagCommand.then(customLagConfigCommand);
+        return customLagCommand.then(configCommand);
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> getCommand(Field field) {
