@@ -1,6 +1,5 @@
 package dev.scrythe.customlag;
 
-import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import dev.scrythe.customlag.DelayHandler.DelayingChannelDuplexHandler;
 import dev.scrythe.customlag.commands.*;
@@ -21,10 +20,15 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.synchronization.SingletonArgumentInfo;
 import net.minecraft.network.Connection;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
-
 import java.nio.file.Path;
+
+#if SELECTED_MINECRAFT_VERSION==MC_1_21_11
+import net.minecraft.resources.Identifier;
+#else
+import net.minecraft.resources.ResourceLocation;
+#endif
+
 
 public class CustomLag implements ModInitializer {
     public static final Path CONFIG_FILE = FabricLoader.getInstance().getConfigDir().resolve("customlag.toml");
@@ -32,12 +36,20 @@ public class CustomLag implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        #if SELECTED_MINECRAFT_VERSION==MC_1_21_11
         ArgumentTypeRegistry.registerArgumentType(Identifier.fromNamespaceAndPath("fabric-docs", "even_integer"), EvenIntegerArgumentType.class, SingletonArgumentInfo.contextFree(EvenIntegerArgumentType::new));
         ArgumentTypeRegistry.registerArgumentType(Identifier.fromNamespaceAndPath("fabric-docs", "existing_player"), ExistigPlayerArgumentType.class, SingletonArgumentInfo.contextFree(ExistigPlayerArgumentType::new));
+        #else
+        ArgumentTypeRegistry.registerArgumentType(ResourceLocation.fromNamespaceAndPath("fabric-docs", "even_integer"), EvenIntegerArgumentType.class, SingletonArgumentInfo.contextFree(EvenIntegerArgumentType::new));
+        ArgumentTypeRegistry.registerArgumentType(ResourceLocation.fromNamespaceAndPath("fabric-docs", "existing_player"), ExistigPlayerArgumentType.class, SingletonArgumentInfo.contextFree(ExistigPlayerArgumentType::new));
+        #endif
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             LiteralArgumentBuilder<CommandSourceStack> customLagCommand = Commands.literal("customlag")
+                    #if SELECTED_MINECRAFT_VERSION==MC_1_21_11
                     .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS));
+                    #else .requires(source -> source.hasPermission(2));
+                    #endif
             dispatcher.register(LagCommand.register(customLagCommand));
             dispatcher.register(ConfigCommand.register(customLagCommand));
             dispatcher.register(ResetCommand.register(customLagCommand));

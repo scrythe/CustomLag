@@ -1,6 +1,7 @@
 plugins {
     id 'fabric-loom' version '1.14-SNAPSHOT'
     id 'maven-publish'
+    id "systems.manifold.manifold-gradle-plugin" version "0.0.2-alpha"
 }
 
 version = project.mod_version
@@ -10,8 +11,23 @@ base {
     archivesName = project.archives_base_name
 }
 
+// this is for manifold preprocessor
+def writeBuildPropertiesFile(List<String> minecraft_versions, int selected_minecraft_version_index) {
+    StringBuilder sb = new StringBuilder()
+    sb.append("# DON'T TOUCH THIS FILE, This is handled by the build script\n")
+    sb.append("# This file is used for manifold preprocessor\n")
+    for (int i = 0; i < minecraft_versions.size(); i++) {
+        String minecraft_version = minecraft_versions[i].replace(".", "_").replace("-", "_")
+        sb.append("MC_%s=%s\n".formatted(minecraft_version, i))
+    }
+    sb.append("SELECTED_MINECRAFT_VERSION="+selected_minecraft_version_index)
+
+    new File(projectDir, "build.properties").text = sb.toString()
+}
+
 // save the properties from $gradle to $project so they are usable by $project.<key>
 project.gradle.ext.getProperties().each { prop -> project.ext.set(prop.key, prop.value) }
+writeBuildPropertiesFile(project.minecraft_versions, project.selected_minecraft_version_index)
 
 repositories {
     // Add repositories to retrieve artifacts from in here.
@@ -38,6 +54,8 @@ dependencies {
 
     implementation 'io.github.wasabithumb:jtoml:1.3.0'
     implementation 'io.github.wasabithumb:jtoml-serializer-reflect:1.3.0'
+
+    annotationProcessor "systems.manifold:manifold-preprocessor:$project.manifold_version"
 }
 
 processResources {
