@@ -20,7 +20,7 @@ def writeBuildPropertiesFile(List<String> minecraft_versions, int selected_minec
         String minecraft_version = minecraft_versions[i].replace(".", "_").replace("-", "_")
         sb.append("MC_%s=%s\n".formatted(minecraft_version, i))
     }
-    sb.append("SELECTED_MINECRAFT_VERSION="+selected_minecraft_version_index)
+    sb.append("SELECTED_MINECRAFT_VERSION=" + selected_minecraft_version_index)
 
     new File(projectDir, "build.properties").text = sb.toString()
 }

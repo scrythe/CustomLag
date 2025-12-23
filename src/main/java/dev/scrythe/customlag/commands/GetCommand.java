@@ -5,7 +5,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import dev.scrythe.customlag.CustomLag;
 import dev.scrythe.customlag.config.CustomLagConfig;
-import dev.scrythe.customlag.config.retentions.ConfigOption;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
