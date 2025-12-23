@@ -14,13 +14,15 @@ public class CustomLagConfig implements TomlSerializable {
 
     @ConfigOption
     @Comment("Custom Ping/Keepalive Packet Interval. Sending more frequent Ping Packets (but also reducing the time when a player gets kicked).")
-    @Comment("Set to -1 to use default.")
+    @Comment("Set to -1 to use minecraft's default value.")
     public long pingSendInterval = -1;
 
     @ConfigOption(client = true)
-    @Comment("Show a numeral ping instead of the ping bar (only for client).")
+    @Comment("Show a numeral ping instead of the ping bar (this option works only for the client).")
     public boolean showNumeralPing = false;
 
     @ConfigOption(autoCommand = false)
+    @Comment("Control how much lag is added to a player.")
+    @Comment("All send and receive packets are delayed each by half of the latency value.")
     public Map<String, Integer> playerLag = new HashMap<>();
 }

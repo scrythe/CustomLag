@@ -23,8 +23,8 @@ import java.lang.reflect.Field;
 import java.util.Map;
 
 public class ConfigCommand {
-    private static final Map<Class<?>, ArgumentInfo<?>> argumentTypeMap = Map.of(Integer.class, new ArgumentInfo<>(IntegerArgumentType.integer(), IntegerArgumentType::getInteger), boolean.class, new ArgumentInfo<>(BoolArgumentType.bool(), BoolArgumentType::getBool), long.class, new ArgumentInfo<>(LongArgumentType.longArg(), LongArgumentType::getLong));
     public static final CustomLagConfig defaultConfig = new CustomLagConfig();
+    private static final Map<Class<?>, ArgumentInfo<?>> argumentTypeMap = Map.of(Integer.class, new ArgumentInfo<>(IntegerArgumentType.integer(), IntegerArgumentType::getInteger), boolean.class, new ArgumentInfo<>(BoolArgumentType.bool(), BoolArgumentType::getBool), long.class, new ArgumentInfo<>(LongArgumentType.longArg(), LongArgumentType::getLong));
 
     public static LiteralArgumentBuilder<CommandSourceStack> register(LiteralArgumentBuilder<CommandSourceStack> customLagCommand) {
         LiteralArgumentBuilder<CommandSourceStack> configCommand = Commands.literal("config");
@@ -42,6 +42,7 @@ public class ConfigCommand {
             fieldCommand = fieldCommand.then(getCommand(field));
             fieldCommand = fieldCommand.then(resetCommand(field));
             fieldCommand = fieldCommand.then(setCommand(field));
+            fieldCommand = fieldCommand.executes(context -> executeDescription(context, field));
 
             configCommand = configCommand.then(fieldCommand);
         }
@@ -107,5 +108,25 @@ public class ConfigCommand {
             context.getSource().sendFailure(Component.literal(e.toString()));
             return -1;
         }
+    }
+
+    public static int executeDescription(CommandContext<CommandSourceStack> context, Field field) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Description of %s:\n".formatted(field.getName()));
+        ConfigHandler.addComments(field, sb, false);
+        Object fieldValue;
+        Object defaultValue;
+        try {
+            fieldValue = field.get(CustomLag.CONFIG);
+            defaultValue = field.get(defaultConfig);
+        } catch (IllegalAccessException e) {
+            context.getSource().sendFailure(Component.literal(e.toString()));
+            return -1;
+        }
+        sb.append("Current value of %s is %s\n".formatted(field.getName(), fieldValue));
+        sb.append("Default value is ").append(defaultValue);
+        context.getSource()
+                .sendSuccess(() -> Component.literal(sb.toString()), false);
+        return Command.SINGLE_SUCCESS;
     }
 }

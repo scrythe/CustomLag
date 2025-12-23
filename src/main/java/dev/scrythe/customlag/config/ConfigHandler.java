@@ -71,6 +71,10 @@ public class ConfigHandler {
     }
 
     private static void addComments(Field field, StringBuilder sb) {
+        addComments(field, sb, true);
+    }
+
+    public static void addComments(Field field, StringBuilder sb, boolean addHashtag) {
         Comment[] comments = null;
         if (field.isAnnotationPresent(Comment.class)) {
             comments = new Comment[]{field.getAnnotation(Comment.class)};
@@ -79,7 +83,10 @@ public class ConfigHandler {
         }
         if (comments == null) return;
         for (Comment comment : comments) {
-            sb.append("# %s\n".formatted(comment.value()));
+            if (addHashtag) {
+                sb.append("# ");
+            }
+            sb.append(comment.value()).append("\n");
         }
     }
 }

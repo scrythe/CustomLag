@@ -9,6 +9,7 @@ import dev.scrythe.customlag.DelayHandler.DelayingChannelDuplexHandler;
 import dev.scrythe.customlag.commands.arguments.EvenIntegerArgumentType;
 import dev.scrythe.customlag.commands.arguments.ExistigPlayerArgumentType;
 import dev.scrythe.customlag.config.ConfigHandler;
+import dev.scrythe.customlag.config.CustomLagConfig;
 import dev.scrythe.customlag.mixin.ConnectionAccessor;
 import dev.scrythe.customlag.mixin.EntitySelectorAccessor;
 import dev.scrythe.customlag.mixin.ServerCommonPacketListenerImplAccessor;
@@ -24,12 +25,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
 public class LagCommand {
     public static LiteralArgumentBuilder<CommandSourceStack> register(LiteralArgumentBuilder<CommandSourceStack> customLagCommand) {
         LiteralArgumentBuilder<CommandSourceStack> playerLagCommand = Commands.literal("playerLag")
+                .executes(LagCommand::executeDescription)
                 .then(Commands.literal("get")
                         .then(Commands.argument("player", ExistigPlayerArgumentType.players())
                                 .suggests(ExistigPlayerArgumentType::listSuggestions)
@@ -46,6 +49,17 @@ public class LagCommand {
                                 .executes(LagCommand::executeRemovePlayersCommand)))
                 .then(Commands.literal("reset").executes(LagCommand::executeRemoveAllPlayersCommand));
         return customLagCommand.then(playerLagCommand);
+    }
+
+    private static int executeDescription(CommandContext<CommandSourceStack> context) {
+        Field field;
+        try {
+            field = CustomLagConfig.class.getField("playerLag");
+        } catch (NoSuchFieldException e) {
+            context.getSource().sendFailure(Component.literal(e.toString()));
+            return -1;
+        }
+        return ConfigCommand.executeDescription(context, field);
     }
 
     private static int executeGetPlayersCommand(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
