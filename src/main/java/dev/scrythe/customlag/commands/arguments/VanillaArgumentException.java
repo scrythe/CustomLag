@@ -1,12 +1,17 @@
 package dev.scrythe.customlag.commands.arguments;
 
+import com.mojang.brigadier.exceptions.Dynamic3CommandExceptionType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
-public class VanillaArgumentType {
-    protected static Component getErrorMessage(String errorMessage, String valueWhereError, String input, int cursor) {
+public class VanillaArgumentException {
+    public static Dynamic3CommandExceptionType getCommandExceptionType(String errorMessage) {
+        return new Dynamic3CommandExceptionType((valueWhereError, input, cursor) -> getErrorMessage(errorMessage, (String) valueWhereError, (String) input, (int) cursor));
+    }
+
+    private static Component getErrorMessage(String errorMessage, String valueWhereError, String input, int cursor) {
         String prevCommandPartMessage = "..." + input.substring(cursor - 10, cursor);
         MutableComponent prevCommmandPartComponent = Component.literal(prevCommandPartMessage)
                 .withStyle(ChatFormatting.GRAY);
