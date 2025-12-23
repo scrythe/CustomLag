@@ -31,22 +31,24 @@ public class LagCommand {
     public static LiteralArgumentBuilder<CommandSourceStack> register(LiteralArgumentBuilder<CommandSourceStack> customLagCommand) {
         LiteralArgumentBuilder<CommandSourceStack> playerLagCommand = Commands.literal("playerLag")
                 .then(Commands.literal("get")
-                        .then(Commands.argument("player", new ExistigPlayerArgumentType())
+                        .then(Commands.argument("player", ExistigPlayerArgumentType.players())
+                                .suggests(ExistigPlayerArgumentType::listSuggestions)
                                 .executes(LagCommand::executeGetPlayersCommand))
                         .executes(LagCommand::executeGetAllPlayersCommand))
                 .then(Commands.literal("set")
                         .then(Commands.argument("player", EntityArgument.players())
                                 .suggests(EntityArgument.player()::listSuggestions)
-                                .then(Commands.argument("latency", new EvenIntegerArgumentType())
+                                .then(Commands.argument("latency", EvenIntegerArgumentType.integer())
                                         .executes(LagCommand::executeSetPlayersCommand))))
                 .then(Commands.literal("remove")
-                        .then(Commands.argument("player", new ExistigPlayerArgumentType())
+                        .then(Commands.argument("player", ExistigPlayerArgumentType.players())
+                                .suggests(ExistigPlayerArgumentType::listSuggestions)
                                 .executes(LagCommand::executeRemovePlayersCommand)))
                 .then(Commands.literal("reset").executes(LagCommand::executeRemoveAllPlayersCommand));
         return customLagCommand.then(playerLagCommand);
     }
 
-    private static int executeGetPlayersCommand(CommandContext<CommandSourceStack> context) {
+    private static int executeGetPlayersCommand(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         String playerName = ExistigPlayerArgumentType.getPlayer(context, "player");
         if (playerName.equals("@a")) return executeGetAllPlayersCommand(context);
         int latency = CustomLag.CONFIG.playerLag.get(playerName);
@@ -108,7 +110,7 @@ public class LagCommand {
         CustomLag.CONFIG.playerLag.put(playerName, latency);
     }
 
-    private static int executeRemovePlayersCommand(CommandContext<CommandSourceStack> context) {
+    private static int executeRemovePlayersCommand(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         String playerName = ExistigPlayerArgumentType.getPlayer(context, "player");
         if (playerName.equals("@a")) {
             return executeRemoveAllPlayersCommand(context);
