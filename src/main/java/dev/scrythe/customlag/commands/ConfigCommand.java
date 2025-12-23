@@ -37,12 +37,9 @@ public class ConfigCommand {
             boolean isGameClient = FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
             if (annotation.client() && !isGameClient) continue;
 
-            LiteralArgumentBuilder<CommandSourceStack> fieldCommand = Commands.literal(field.getName());
-
-            fieldCommand = fieldCommand.then(getCommand(field));
-            fieldCommand = fieldCommand.then(resetCommand(field));
-            fieldCommand = fieldCommand.then(setCommand(field));
-            fieldCommand = fieldCommand.executes(context -> executeDescription(context, field));
+            LiteralArgumentBuilder<CommandSourceStack> fieldCommand = Commands.literal(field.getName())
+                    .executes(context -> executeDescription(context, field))
+                    .then(setArgumentCommand(field));
 
             configCommand = configCommand.then(fieldCommand);
         }
@@ -50,58 +47,17 @@ public class ConfigCommand {
         return customLagCommand.then(configCommand);
     }
 
-    private static LiteralArgumentBuilder<CommandSourceStack> getCommand(Field field) {
-        return Commands.literal("get").executes(context -> executeGetCommand(context, field));
-    }
-
-    private static int executeGetCommand(CommandContext<CommandSourceStack> context, Field field) {
-        try {
-            Object fieldValue = field.get(CustomLag.CONFIG);
-            context.getSource()
-                    .sendSuccess(() -> Component.literal("%s is set to %s".formatted(field.getName(), fieldValue)), false);
-            return Command.SINGLE_SUCCESS;
-        } catch (IllegalAccessException e) {
-            context.getSource().sendFailure(Component.literal(e.toString()));
-            return -1;
-        }
-    }
-
-    private static LiteralArgumentBuilder<CommandSourceStack> setCommand(Field field) {
+    private static RequiredArgumentBuilder<CommandSourceStack, ?> setArgumentCommand(Field field) {
         ArgumentType<?> argumentType = argumentTypeMap.get(field.getType()).argumentType();
-        RequiredArgumentBuilder<CommandSourceStack, ?> argumentCommand = Commands.argument(field.getName(), argumentType)
-                .executes(context -> executeSetCommand(context, field));
-        return Commands.literal("set").then(argumentCommand);
+        return Commands.argument("value", argumentType).executes(context -> executeSetCommand(context, field));
     }
 
     private static int executeSetCommand(CommandContext<CommandSourceStack> context, Field field) {
         try {
-            Object fieldValue = argumentTypeMap.get(field.getType()).getArgumentValue().apply(context, field.getName());
+            Object fieldValue = argumentTypeMap.get(field.getType()).getArgumentValue().apply(context, "value");
             field.set(CustomLag.CONFIG, fieldValue);
             context.getSource()
                     .sendSuccess(() -> Component.literal("Set %s to %s".formatted(field.getName(), fieldValue)), false);
-            ConfigHandler.writeConfig(CustomLag.CONFIG_FILE, CustomLag.CONFIG);
-            return Command.SINGLE_SUCCESS;
-        } catch (IllegalAccessException e) {
-            context.getSource().sendFailure(Component.literal(e.toString()));
-            return -1;
-        }
-    }
-
-    private static LiteralArgumentBuilder<CommandSourceStack> resetCommand(Field field) {
-        Object defaultValue;
-        try {
-            defaultValue = field.get(defaultConfig);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-        return Commands.literal("reset").executes(context -> executeResetCommand(context, field, defaultValue));
-    }
-
-    private static int executeResetCommand(CommandContext<CommandSourceStack> context, Field field, Object defaultValue) {
-        try {
-            field.set(CustomLag.CONFIG, defaultValue);
-            context.getSource()
-                    .sendSuccess(() -> Component.literal("Reset %s to %s (default)".formatted(field.getName(), defaultValue)), false);
             ConfigHandler.writeConfig(CustomLag.CONFIG_FILE, CustomLag.CONFIG);
             return Command.SINGLE_SUCCESS;
         } catch (IllegalAccessException e) {
@@ -125,8 +81,7 @@ public class ConfigCommand {
         }
         sb.append("Current value of %s is %s\n".formatted(field.getName(), fieldValue));
         sb.append("Default value is ").append(defaultValue);
-        context.getSource()
-                .sendSuccess(() -> Component.literal(sb.toString()), false);
+        context.getSource().sendSuccess(() -> Component.literal(sb.toString()), false);
         return Command.SINGLE_SUCCESS;
     }
 }

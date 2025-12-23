@@ -33,11 +33,6 @@ public class LagCommand {
     public static LiteralArgumentBuilder<CommandSourceStack> register(LiteralArgumentBuilder<CommandSourceStack> customLagCommand) {
         LiteralArgumentBuilder<CommandSourceStack> playerLagCommand = Commands.literal("playerLag")
                 .executes(LagCommand::executeDescription)
-                .then(Commands.literal("get")
-                        .then(Commands.argument("player", ExistigPlayerArgumentType.players())
-                                .suggests(ExistigPlayerArgumentType::listSuggestions)
-                                .executes(LagCommand::executeGetPlayersCommand))
-                        .executes(LagCommand::executeGetAllPlayersCommand))
                 .then(Commands.literal("set")
                         .then(Commands.argument("player", EntityArgument.players())
                                 .suggests(EntityArgument.player()::listSuggestions)
@@ -46,8 +41,7 @@ public class LagCommand {
                 .then(Commands.literal("remove")
                         .then(Commands.argument("player", ExistigPlayerArgumentType.players())
                                 .suggests(ExistigPlayerArgumentType::listSuggestions)
-                                .executes(LagCommand::executeRemovePlayersCommand)))
-                .then(Commands.literal("reset").executes(LagCommand::executeRemoveAllPlayersCommand));
+                                .executes(LagCommand::executeRemovePlayersCommand)));
         return customLagCommand.then(playerLagCommand);
     }
 
@@ -60,21 +54,6 @@ public class LagCommand {
             return -1;
         }
         return ConfigCommand.executeDescription(context, field);
-    }
-
-    private static int executeGetPlayersCommand(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        String playerName = ExistigPlayerArgumentType.getPlayer(context, "player");
-        if (playerName.equals("@a")) return executeGetAllPlayersCommand(context);
-        int latency = CustomLag.CONFIG.playerLag.get(playerName);
-        context.getSource()
-                .sendSuccess(() -> Component.literal("Player latency of %s is set to %s".formatted(playerName, latency)), false);
-        return Command.SINGLE_SUCCESS;
-    }
-
-    private static int executeGetAllPlayersCommand(CommandContext<CommandSourceStack> context) {
-        context.getSource()
-                .sendSuccess(() -> Component.literal("Player=Latency Map: " + CustomLag.CONFIG.playerLag.toString()), false);
-        return Command.SINGLE_SUCCESS;
     }
 
     private static int executeSetPlayersCommand(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -127,14 +106,16 @@ public class LagCommand {
     private static int executeRemovePlayersCommand(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         String playerName = ExistigPlayerArgumentType.getPlayer(context, "player");
         if (playerName.equals("@a")) {
-            return executeRemoveAllPlayersCommand(context);
+            String[] playerNames = removeAllPlayers(context);
+            context.getSource()
+                    .sendSuccess(() -> Component.literal("Removed lag for: " + Arrays.toString(playerNames)), false);
         } else {
             PlayerList connectedPlayerList = context.getSource().getServer().getPlayerList();
             removePlayer(connectedPlayerList, playerName);
             context.getSource().sendSuccess(() -> Component.literal("Remove lag for player " + playerName), false);
-            ConfigHandler.writeConfig(CustomLag.CONFIG_FILE, CustomLag.CONFIG);
-            return Command.SINGLE_SUCCESS;
         }
+        ConfigHandler.writeConfig(CustomLag.CONFIG_FILE, CustomLag.CONFIG);
+        return Command.SINGLE_SUCCESS;
     }
 
     public static String[] removeAllPlayers(CommandContext<CommandSourceStack> context) {
@@ -146,14 +127,6 @@ public class LagCommand {
         return playerNames;
     }
 
-
-    private static int executeRemoveAllPlayersCommand(CommandContext<CommandSourceStack> context) {
-        String[] playerNames = removeAllPlayers(context);
-        context.getSource()
-                .sendSuccess(() -> Component.literal("Removed lag for: " + Arrays.toString(playerNames)), false);
-        ConfigHandler.writeConfig(CustomLag.CONFIG_FILE, CustomLag.CONFIG);
-        return Command.SINGLE_SUCCESS;
-    }
 
     private static void removePlayer(PlayerList connectedPlayerList, String playerName) {
         ServerPlayer player = connectedPlayerList.getPlayerByName(playerName);
