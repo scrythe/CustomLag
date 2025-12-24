@@ -53,7 +53,7 @@ public class LagCommand {
             context.getSource().sendFailure(Component.literal(e.toString()));
             return -1;
         }
-        return ConfigCommand.executeDescription(context, field);
+        return ConfigCommand.executeFieldDescription(context, field);
     }
 
     private static int executeSetPlayersCommand(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
