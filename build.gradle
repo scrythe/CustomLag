@@ -40,9 +40,10 @@ repositories {
         url = 'https://maven.parchmentmc.org'
     }
 }
-
-loom {
-    accessWidenerPath = file("src/main/resources/customlag.classtweaker")
+if (project.minecraft_version.equals("1.21.11")) {
+    loom {
+        accessWidenerPath = file("src/main/resources/customlag.classtweaker")
+    }
 }
 
 dependencies {

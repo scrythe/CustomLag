@@ -19,7 +19,11 @@
   "mixins": [
     "customlag.mixins.json"
   ],
-  "accessWidener": "customlag.classtweaker",
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/class_5250": ["dev/scrythe/customlag/IMutableClickComponent"]
+    }
+  },
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
