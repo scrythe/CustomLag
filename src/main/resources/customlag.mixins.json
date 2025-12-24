@@ -6,6 +6,7 @@
   "mixins": [
     "ConnectionAccessor",
     "EntitySelectorAccessor",
+    "MutableClickComponent",
     "ServerCommonPacketListenerImplAccessor",
     "ServerCommonPacketListenerImplMixin"
   ],

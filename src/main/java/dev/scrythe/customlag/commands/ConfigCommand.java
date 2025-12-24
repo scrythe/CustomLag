@@ -18,7 +18,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import static net.minecraft.network.chat.Component.literal;
 import static net.minecraft.network.chat.Component.translatable;
@@ -71,7 +70,7 @@ public class ConfigCommand {
                 return -1;
             }
             descComponent.append(literal("%s <%s>\n".formatted(field.getName(), field.getType())).withStyle(ChatFormatting.GRAY)
-                    .withStyle(style -> style.withClickEvent(new ClickEvent.SuggestCommand("/customlag config %s".formatted(field.getName())))));
+                    .customLag$withClickCommand("/customlag config %s".formatted(field.getName())));
             if (defaultValue.equals(fieldValue)) {
                 descComponent.append(translatable(" current value=%s (default))\n", literal(defaultValue.toString()).withStyle(ChatFormatting.UNDERLINE)));
             } else {

@@ -2,7 +2,6 @@ package dev.scrythe.customlag.commands.arguments;
 
 import com.mojang.brigadier.exceptions.Dynamic3CommandExceptionType;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
@@ -22,12 +21,7 @@ public class VanillaArgumentException {
 
 
         MutableComponent errorContextComponent = prevCommmandPartComponent.append(valueWhereErrorComponent)
-                .append(errorPointerComponent)
-                #if SELECTED_MINECRAFT_VERSION==MC_1_21_11
-                .withStyle(style -> style.withClickEvent(new ClickEvent.SuggestCommand("/" + input)));
-                #else
-                .withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + input)));
-                #endif
+                .append(errorPointerComponent).customLag$withClickCommand(input);
         return Component.literal(errorMessage.formatted(valueWhereError) + "\n").append(errorContextComponent);
     }
 }

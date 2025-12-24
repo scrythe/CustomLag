@@ -19,6 +19,7 @@
   "mixins": [
     "customlag.mixins.json"
   ],
+  "accessWidener": "customlag.classtweaker",
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
