@@ -2,18 +2,31 @@ package dev.scrythe.customlag.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import static net.minecraft.network.chat.Component.literal;
+import net.minecraft.network.chat.MutableComponent;
 
 public class CustomLagDescriptionCommand {
     public static int executeDescriptionCommand(CommandContext<CommandSourceStack> context) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Description of each subcommand:\n\n");
-        sb.append("config: configure additional options, type in /customlag config fore more info\n");
-        sb.append("playerlag: set the extra lag of a player, type in /customlag playerlag fore more info\n");
-        sb.append("reload: reload the config from the customlag.toml file\n");
-        sb.append("reset: reset everything to its default values");
-        context.getSource().sendSuccess(() -> Component.literal(sb.toString()), false);
+        MutableComponent descComponent = Component.empty();
+        descComponent.append("Description of each subcommand:\n\n");
+
+        descComponent.append("config: configure additional options, type in\n");
+        descComponent.append(literal(" /customlag config\n").withStyle(ChatFormatting.ITALIC)
+                .withStyle(style -> style.withClickEvent(new ClickEvent.SuggestCommand("/customlag config"))));
+        descComponent.append(" fore more info\n");
+
+        descComponent.append("playerlag: set the extra lag of a player, type in\n");
+        descComponent.append(literal(" /customlag playerLag\n").withStyle(ChatFormatting.ITALIC)
+                .withStyle(style -> style.withClickEvent(new ClickEvent.SuggestCommand("/customlag playerLag"))));
+        descComponent.append(" fore more info\n");
+
+        descComponent.append("reload: reload the config from the customlag.toml file\n");
+        descComponent.append("reset: reset everything to its default values");
+        context.getSource().sendSuccess(() -> descComponent, false);
         return Command.SINGLE_SUCCESS;
     }
 }

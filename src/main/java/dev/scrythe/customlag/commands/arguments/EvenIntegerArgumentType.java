@@ -7,7 +7,7 @@ import com.mojang.brigadier.exceptions.Dynamic3CommandExceptionType;
 
 // send and receive packets delayed by half of latency and only whole numbers allowed therefore latency can only be even
 public class EvenIntegerArgumentType {
-    private static final Dynamic3CommandExceptionType UNEVEN_INTEGER = VanillaArgumentException.getCommandExceptionType("Integer %s must be even.");
+    private static final Dynamic3CommandExceptionType UNEVEN_INTEGER = VanillaArgumentException.getCommandExceptionType("Integer must be even, found %s.");
 
     public static IntegerArgumentType integer() {
         return IntegerArgumentType.integer(0);

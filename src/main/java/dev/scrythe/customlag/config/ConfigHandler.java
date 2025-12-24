@@ -74,7 +74,13 @@ public class ConfigHandler {
         addComments(field, sb, true);
     }
 
-    public static void addComments(Field field, StringBuilder sb, boolean addHashtag) {
+    public static String addComments(Field field) {
+        StringBuilder sb = new StringBuilder();
+        addComments(field, sb, false);
+        return sb.toString();
+    }
+
+    private static void addComments(Field field, StringBuilder sb, boolean addHashtag) {
         Comment[] comments = null;
         if (field.isAnnotationPresent(Comment.class)) {
             comments = new Comment[]{field.getAnnotation(Comment.class)};

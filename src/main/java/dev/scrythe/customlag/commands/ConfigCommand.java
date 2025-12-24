@@ -15,9 +15,14 @@ import dev.scrythe.customlag.config.CustomLagConfig;
 import dev.scrythe.customlag.config.retentions.ConfigOption;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import static net.minecraft.network.chat.Component.literal;
+import static net.minecraft.network.chat.Component.translatable;
+import net.minecraft.network.chat.MutableComponent;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -49,27 +54,39 @@ public class ConfigCommand {
             configCommand = configCommand.then(fieldCommand);
         }
 
-        return customLagCommand.then(configCommand
-                .executes((context -> executeConfigDescriptionCommand(context, fields))));
+        return customLagCommand.then(configCommand.executes((context -> executeConfigDescriptionCommand(context, fields))));
     }
 
     private static int executeConfigDescriptionCommand(CommandContext<CommandSourceStack> context, List<Field> fields) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Customise certain options by changing the values of the field\n");
-        sb.append("All subcommands of config:\n\n");
+        MutableComponent descComponent = literal("Customise certain options by changing the values of the field\n");
+        descComponent.append("All subcommands of config:\n\n");
         for (Field field : fields) {
-            sb.append("%s <%s>\n".formatted(field.getName(), field.getType()));
+            Object fieldValue;
+            Object defaultValue;
+            try {
+                fieldValue = field.get(CustomLag.CONFIG);
+                defaultValue = field.get(defaultConfig);
+            } catch (IllegalAccessException e) {
+                context.getSource().sendFailure(Component.literal(e.toString()));
+                return -1;
+            }
+            descComponent.append(literal("%s <%s>\n".formatted(field.getName(), field.getType())).withStyle(ChatFormatting.GRAY)
+                    .withStyle(style -> style.withClickEvent(new ClickEvent.SuggestCommand("/customlag config %s".formatted(field.getName())))));
+            if (defaultValue.equals(fieldValue)) {
+                descComponent.append(translatable(" current value=%s (default))\n", literal(defaultValue.toString()).withStyle(ChatFormatting.UNDERLINE)));
+            } else {
+                descComponent.append(translatable(" current value=%s, default=%s\n", literal(fieldValue.toString()).withStyle(ChatFormatting.UNDERLINE), literal(defaultValue.toString()).withStyle(ChatFormatting.UNDERLINE)));
+            }
         }
-        sb.append("\nfor more information about each command, enter:\n");
-        sb.append("/customlag config <subcommand>");
-        context.getSource().sendSuccess(() -> Component.literal(sb.toString()), false);
+        descComponent.append("\nfor more information about each command, enter:\n");
+        descComponent.append("/customlag config <subcommand>");
+        context.getSource().sendSuccess(() -> descComponent, false);
         return Command.SINGLE_SUCCESS;
     }
 
     public static int executeFieldDescription(CommandContext<CommandSourceStack> context, Field field) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Description of %s:\n\n".formatted(field.getName()));
-        ConfigHandler.addComments(field, sb, false);
+        MutableComponent descComponent = translatable("Description of %s:\n\n", literal(field.getName()).withStyle(ChatFormatting.UNDERLINE));
+        descComponent.append(ConfigHandler.addComments(field));
         Object fieldValue;
         Object defaultValue;
         try {
@@ -79,9 +96,15 @@ public class ConfigCommand {
             context.getSource().sendFailure(Component.literal(e.toString()));
             return -1;
         }
-        sb.append("\nCurrent value of %s is %s\n".formatted(field.getName(), fieldValue));
-        sb.append("Default value is ").append(defaultValue);
-        context.getSource().sendSuccess(() -> Component.literal(sb.toString()), false);
+        Component valueInfoComponent = translatable("\nCurrent value of %s is %s", field.getName(), literal(fieldValue.toString()).withStyle(ChatFormatting.UNDERLINE));
+        descComponent.append(valueInfoComponent);
+        if (defaultValue.equals(fieldValue)) {
+            descComponent.append(" (default)");
+        } else {
+            Component defaultValueComponent = translatable("\nDefault value is %s", literal(defaultValue.toString()).withStyle(ChatFormatting.UNDERLINE));
+            descComponent.append(defaultValueComponent);
+        }
+        context.getSource().sendSuccess(() -> descComponent, false);
         return Command.SINGLE_SUCCESS;
     }
 
