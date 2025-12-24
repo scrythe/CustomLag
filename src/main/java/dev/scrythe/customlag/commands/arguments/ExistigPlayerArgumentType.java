@@ -18,7 +18,7 @@ public class ExistigPlayerArgumentType {
     private static final Dynamic3CommandExceptionType PLAYER_NOT_CONFIGURED = VanillaArgumentException.getCommandExceptionType("Player %s has not ben set.");
 
     public static StringArgumentType players() {
-        return StringArgumentType.string();
+        return StringArgumentType.greedyString();
     }
 
     public static String getPlayer(final CommandContext<?> context, final String name) throws CommandSyntaxException {
