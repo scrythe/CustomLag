@@ -15,12 +15,12 @@ public class CustomLagDescriptionCommand {
 
         descComponent.append("config: configure additional options, type in\n");
         descComponent.append(literal(" /customlag config\n").withStyle(ChatFormatting.ITALIC)
-                .customLag$withClickCommand("/customlag config"));
+                .customLag$withClickCommand("customlag config"));
         descComponent.append(" fore more info\n");
 
         descComponent.append("playerlag: set the extra lag of a player, type in\n");
         descComponent.append(literal(" /customlag playerLag\n").withStyle(ChatFormatting.ITALIC)
-                .customLag$withClickCommand("/customlag playerLag"));
+                .customLag$withClickCommand("customlag playerLag"));
         descComponent.append(" fore more info\n");
 
         descComponent.append("reload: reload the config from the customlag.toml file\n");

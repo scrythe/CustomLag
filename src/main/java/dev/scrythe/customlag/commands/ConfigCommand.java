@@ -13,8 +13,6 @@ import dev.scrythe.customlag.commands.arguments.ArgumentInfo;
 import dev.scrythe.customlag.config.ConfigHandler;
 import dev.scrythe.customlag.config.CustomLagConfig;
 import dev.scrythe.customlag.config.retentions.ConfigOption;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -22,6 +20,8 @@ import net.minecraft.network.chat.Component;
 import static net.minecraft.network.chat.Component.literal;
 import static net.minecraft.network.chat.Component.translatable;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -41,13 +41,14 @@ public class ConfigCommand {
             ConfigOption annotation = field.getAnnotation(ConfigOption.class);
 
             if (!annotation.autoCommand()) continue;
-            boolean isGameClient = FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
-            if (annotation.client() && !isGameClient) continue;
 
             fields.add(field);
 
-            LiteralArgumentBuilder<CommandSourceStack> fieldCommand = Commands.literal(field.getName())
-                    .executes(context -> executeFieldDescription(context, field))
+            LiteralArgumentBuilder<CommandSourceStack> fieldCommand = Commands.literal(field.getName());
+            if (annotation.client()) {
+                fieldCommand.requires(ConfigCommand::isSinglePlayerOwner);
+            }
+            fieldCommand = fieldCommand.executes(context -> executeFieldDescription(context, field))
                     .then(setArgumentCommand(field));
 
             configCommand = configCommand.then(fieldCommand);
@@ -56,10 +57,25 @@ public class ConfigCommand {
         return customLagCommand.then(configCommand.executes((context -> executeConfigDescriptionCommand(context, fields))));
     }
 
+    private static boolean isSinglePlayerOwner(CommandSourceStack source) {
+        ServerPlayer player = source.getPlayer();
+        if (player == null) return false;
+        MinecraftServer server = source.getServer();
+        #if SELECTED_MINECRAFT_VERSION==MC_1_21_11
+        return server.isSingleplayerOwner(player.nameAndId());
+        #else
+        return server.isSingleplayerOwner(player.getGameProfile());
+        #endif
+    }
+
     private static int executeConfigDescriptionCommand(CommandContext<CommandSourceStack> context, List<Field> fields) {
         MutableComponent descComponent = literal("Customise certain options by changing the values of the field\n");
         descComponent.append("All subcommands of config:\n\n");
         for (Field field : fields) {
+            ConfigOption annotation = field.getAnnotation(ConfigOption.class);
+
+            if (annotation.client() && !isSinglePlayerOwner(context.getSource())) continue;
+
             Object fieldValue;
             Object defaultValue;
             try {
@@ -70,7 +86,7 @@ public class ConfigCommand {
                 return -1;
             }
             descComponent.append(literal("%s <%s>\n".formatted(field.getName(), field.getType())).withStyle(ChatFormatting.GRAY)
-                    .customLag$withClickCommand("/customlag config %s".formatted(field.getName())));
+                    .customLag$withClickCommand("customlag config %s".formatted(field.getName())));
             if (defaultValue.equals(fieldValue)) {
                 descComponent.append(translatable(" current value=%s (default))\n", literal(defaultValue.toString()).withStyle(ChatFormatting.UNDERLINE)));
             } else {
