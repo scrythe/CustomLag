@@ -18,7 +18,7 @@ def writeBuildPropertiesFile(List<String> minecraft_versions, int selected_minec
     sb.append("# DON'T TOUCH THIS FILE, This is handled by the build script\n")
     sb.append("# This file is used for manifold preprocessor\n")
     for (int i = 0; i < minecraft_versions.size(); i++) {
-        String minecraft_version = minecraft_versions[i].replace(".", "_").replace("-", "_")
+        String minecraft_version = minecraft_versions[i].replaceAll("\\.0\$", "").replace(".", "_").replace("-", "_")
         sb.append("MC_%s=%s\n".formatted(minecraft_version, i))
     }
     sb.append("SELECTED_MINECRAFT_VERSION=" + selected_minecraft_version_index)

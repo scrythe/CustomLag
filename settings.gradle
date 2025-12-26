@@ -14,10 +14,12 @@ def loadProperties() {
     ArrayList<String> minecraft_versions = fileTree("versionProperties").files.name
     for (int i = 0; i < minecraft_versions.size(); i++) {
         // remove the ".properties" at the end to get the versions
-        String version = minecraft_versions[i].replaceAll("\\.properties", "")
+        String version = minecraft_versions[i].replace(".properties", "")
         minecraft_versions[i] = version
     }
-    minecraft_versions.sort() // Sort so it always goes from oldest to newest, maybe better sort neccesary though
+    // Sort so it always goes from oldest to newest
+    minecraft_versions.sort((a, b) -> sortVersion(a, b))
+
     println("Available MC Versions: ${minecraft_versions}")
 
     int selected_minecraft_version_index = -1
@@ -36,6 +38,21 @@ def loadProperties() {
     props.each { prop -> gradle.ext.set(prop.key, prop.value) }
     gradle.ext.minecraft_versions = minecraft_versions
     gradle.ext.selected_minecraft_version_index = selected_minecraft_version_index
+}
+
+static def sortVersion(String v1, String v2) {
+    v1 = v1.replace("-TEST", "")
+    v2 = v2.replace("-TEST", "")
+
+    String[] v1Parts = v1.split("\\.")
+    String[] v2Parts = v2.split("\\.")
+    for (int i = 0; i < 3; i++) {
+        int versionPart1 = Integer.parseInt(v1Parts[i])
+        int versionPart2 = Integer.parseInt(v2Parts[i])
+        if (versionPart1 == versionPart2) continue
+        return Integer.compare(versionPart1, versionPart2)
+    }
+    return 0
 }
 
 loadProperties()
