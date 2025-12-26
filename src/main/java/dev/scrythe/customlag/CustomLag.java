@@ -1,6 +1,7 @@
 package dev.scrythe.customlag;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import dev.scrythe.customlag.DelayHandler.DelayingChannelDuplexHandler;
 import dev.scrythe.customlag.commands.*;
 import dev.scrythe.customlag.config.ConfigHandler;
@@ -32,9 +33,10 @@ public class CustomLag implements ModInitializer {
                     .executes(CustomLagDescriptionCommand::executeDescriptionCommand)
                     #if SELECTED_MINECRAFT_VERSION==MC_1_21_11
                     .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS));
-                    #else.requires(source -> source.hasPermission(2));
+                    #else .requires(source -> source.hasPermission(2));
                     #endif
-            dispatcher.register(LagCommand.register(customLagCommand));
+            LiteralCommandNode<CommandSourceStack> lagNode = dispatcher.register(LagCommand.register());
+            dispatcher.register(PlayerLagCommand.register(customLagCommand, lagNode));
             dispatcher.register(ConfigCommand.register(customLagCommand));
             dispatcher.register(ResetCommand.register(customLagCommand));
             dispatcher.register(ReloadCommand.register(customLagCommand));

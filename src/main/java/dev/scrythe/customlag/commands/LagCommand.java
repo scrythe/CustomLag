@@ -30,8 +30,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class LagCommand {
-    public static LiteralArgumentBuilder<CommandSourceStack> register(LiteralArgumentBuilder<CommandSourceStack> customLagCommand) {
-        LiteralArgumentBuilder<CommandSourceStack> playerLagCommand = Commands.literal("playerLag")
+    public static LiteralArgumentBuilder<CommandSourceStack> register() {
+        return Commands.literal("lag")
                 .executes(LagCommand::executeDescription)
                 .then(Commands.literal("set")
                         .then(Commands.argument("player", EntityArgument.players())
@@ -42,10 +42,9 @@ public class LagCommand {
                         .then(Commands.argument("player", ExistigPlayerArgumentType.players())
                                 .suggests(ExistigPlayerArgumentType::listSuggestions)
                                 .executes(LagCommand::executeRemovePlayersCommand)));
-        return customLagCommand.then(playerLagCommand);
     }
 
-    private static int executeDescription(CommandContext<CommandSourceStack> context) {
+    public static int executeDescription(CommandContext<CommandSourceStack> context) {
         Field field;
         try {
             field = CustomLagConfig.class.getField("playerLag");
