@@ -21,7 +21,9 @@
   ],
   "custom": {
     "loom:injected_interfaces": {
-      "net/minecraft/class_5250": ["dev/scrythe/customlag/IMutableClickComponent"]
+      "net/minecraft/class_5250": [
+        "dev/scrythe/customlag/IMutableClickComponent"
+      ]
     }
   },
   "depends": {
