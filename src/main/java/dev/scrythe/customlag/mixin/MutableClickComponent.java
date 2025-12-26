@@ -13,7 +13,7 @@ abstract public class MutableClickComponent implements IMutableClickComponent {
     public MutableComponent customLag$withClickCommand(String input) {
         MutableComponent mutableComponent = (MutableComponent) (Object) this;
         return mutableComponent
-                #if SELECTED_MINECRAFT_VERSION==MC_1_21_11
+                #if SELECTED_MINECRAFT_VERSION>=MC_1_21_5
                 .withStyle(style -> style.withClickEvent(new ClickEvent.SuggestCommand("/" + input)));
                 #else
                 .withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + input)));

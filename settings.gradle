@@ -32,7 +32,7 @@ def loadProperties() {
                 "or use -Pselected_minecraft_version=\"<insert correct minecraft version properties file>\" in cmd arg to set selected_minecraft_version\n")
     }
 
-    def props = new Properties()
+    Properties props = new Properties()
     props.load(new FileInputStream("$rootDir/versionProperties/${selected_minecraft_version}.properties"))
     // load the properties of the selected minecraft version and save it to $gradle
     props.each { prop -> gradle.ext.set(prop.key, prop.value) }

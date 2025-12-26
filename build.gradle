@@ -4,8 +4,10 @@ plugins {
     id "systems.manifold.manifold-gradle-plugin" version "0.0.2-alpha"
     id("com.gradleup.shadow") version "9.3.0"
 }
+// save the properties from $gradle to $project so they are usable by $project.<key>
+project.gradle.ext.getProperties().each { prop -> project.ext.set(prop.key, prop.value) }
 
-version = "$project.mod_version+$project.selected_minecraft_version"
+version = "$project.mod_version+$project.version_range"
 group = project.maven_group
 
 base {
@@ -26,8 +28,6 @@ def writeBuildPropertiesFile(List<String> minecraft_versions, int selected_minec
     new File(projectDir, "build.properties").text = sb.toString()
 }
 
-// save the properties from $gradle to $project so they are usable by $project.<key>
-project.gradle.ext.getProperties().each { prop -> project.ext.set(prop.key, prop.value) }
 writeBuildPropertiesFile(project.minecraft_versions, project.selected_minecraft_version_index)
 
 repositories {

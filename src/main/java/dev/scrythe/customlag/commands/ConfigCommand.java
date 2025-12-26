@@ -61,7 +61,7 @@ public class ConfigCommand {
         ServerPlayer player = source.getPlayer();
         if (player == null) return false;
         MinecraftServer server = source.getServer();
-        #if SELECTED_MINECRAFT_VERSION==MC_1_21_11
+        #if SELECTED_MINECRAFT_VERSION>=MC_1_21_9
         return server.isSingleplayerOwner(player.nameAndId());
         #else
         return server.isSingleplayerOwner(player.getGameProfile());
