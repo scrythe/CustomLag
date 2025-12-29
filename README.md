@@ -11,7 +11,7 @@
 
 <!-- for local:
 <video autoplay muted loop playsinline controls preload="auto">
-  <source src="./src/main/resources/assets/customlag/example-usecase.mp4" type="video/mp4">
+  <source src="./assets/example-usecase.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 -->
