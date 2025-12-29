@@ -85,7 +85,7 @@ public class ConfigCommand {
                 context.getSource().sendFailure(Component.literal(e.toString()));
                 return -1;
             }
-            descComponent.append(literal("%s <%s>\n".formatted(field.getName(), field.getType())).withStyle(ChatFormatting.GRAY)
+            descComponent.append(literal("%s <%s>\n".formatted(field.getName(), field.getType())).withStyle(ChatFormatting.ITALIC)
                     .customLag$withClickCommand("customlag config %s".formatted(field.getName())));
             if (defaultValue.equals(fieldValue)) {
                 descComponent.append(translatable(" current value=%s (default))\n", literal(defaultValue.toString()).withStyle(ChatFormatting.UNDERLINE)));
