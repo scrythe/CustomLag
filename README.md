@@ -17,9 +17,8 @@
 -->
 
 <!-- for github -->
-<video src="https://github.com/user-attachments/assets/af988608-fc0a-472d-b2a4-939ccbc7fb63" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+https://github.com/user-attachments/assets/56b991c3-ccaa-4b95-8e46-36ba97b192e3
+
 
 # About the Mod
 
