@@ -4,7 +4,7 @@
 
 <!-- for modrinth
 <video autoplay muted loop playsinline controls preload="auto">
-  <source src="https://raw.githubusercontent.com/scrythe/CustomLag/refs/heads/main/src/main/resources/assets/customlag/example-usecase.mp4" type="video/mp4">
+  <source src="https://raw.githubusercontent.com/scrythe/CustomLag/refs/heads/main/assets/example-usecase.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 -->
@@ -18,7 +18,8 @@
 
 <!-- for github -->
 
-https://github.com/user-attachments/assets/56b991c3-ccaa-4b95-8e46-36ba97b192e3
+https://github.com/user-attachments/assets/df095434-80d9-4b04-8a91-cd1e9d70a50e
+
 
 # About the Mod
 
