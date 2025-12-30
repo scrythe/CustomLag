@@ -20,7 +20,6 @@
 
 https://github.com/user-attachments/assets/df095434-80d9-4b04-8a91-cd1e9d70a50e
 
-
 # About the Mod
 
 This Mod simulates lag by delaying the processes of receiving and sending
@@ -30,13 +29,29 @@ worlds.
 
 # Usage
 
-To set or change the latency/ping for a player, just use the command /lag set
-<playername> <latency>
+To set or change the latency/ping for a player, just use the lag command:
 
-you can use /lag remove <playername> to remove the ContextHandler that delays
-packets from sending
+```mcfunction
+/lag set <playername> <latency>
+```
 
-Also, this mod changes how latency is displayed on the tab list. Instead of
-showing an average of the last 4 keep alive packet latency, it only displays the
-current latency one. The tablist also gets updated every time a new latency is
-calculated
+Setting lag will be saved to a toml file, so even after restart, the settings
+will remain. You can also set the lag of offline players (who have not currently
+joined yet.)
+
+In order to remove the lag of a player, you can use:
+
+```mcfunction
+/lag remove <playername>
+```
+
+(this removes the ContextHandler that delays packets from sending)
+
+Some additional commands are:
+
+There are also some addional quality of live -ish commands, like increase the
+keep alive / ping packets interval, to find more, just enter
+
+```mcfunction
+/customlag
+```
